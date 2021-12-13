@@ -13,11 +13,10 @@ GLuint shader_program_id;
 GLuint gui_program_id;
 
 int longu = 600;
-int haute = 600; 
-bool haut;
-bool droite;
-bool gauche;
-bool bas;
+int Cursor_Upe = 600;
+
+float dL=0.1f;
+
 camera cam;
 
 const int nb_obj = 3;
@@ -30,9 +29,7 @@ vec3 lampetorche = vec3(0, 0.01, 0);
 float angle_x_model_1 = 0.0f;
 float angle_y_model_1 = 0.0f;
 float angle_view = 0.0f;
-/*****************************************************************************\
-* initialisation                                                              *
-\*****************************************************************************/
+
 static void init()
 {
   shader_program_id = glhelper::create_program_from_file("shaders/shader.vert", "shaders/shader.frag"); CHECK_GL_ERROR();
@@ -59,14 +56,39 @@ static void init()
   // text_to_draw[1].topRight.y = 0.5f;
 }
 
-/*****************************************************************************\
-* display_callback                                                           *
-\*****************************************************************************/
- static void display_callback()
+static void display_callback()
 {
   glClearColor(0.5f, 0.6f, 0.9f, 1.0f); CHECK_GL_ERROR();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_GL_ERROR();
 
+  //Deplacement du personnage
+  mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
+  mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
+  mat4 rotation = rotation_x*rotation_y;
+
+  if (Move_Up){
+    cam.tr.translation += rotation*vec3(0,0,dL);
+    cam.tr.translation.y = 2;
+    //obj[0].tr.translation.x += dL;
+  }
+  if(Move_Down){
+    cam.tr.translation -= rotation*vec3(0,0,dL);
+    cam.tr.translation.y = 2;
+    //obj[0].tr.translation -= obj[0].tr.rotation_euler.z*vec3(0,0,dL);
+  }
+  if(Move_Left){
+    cam.tr.translation -= rotation*vec3(dL,0,0);
+    cam.tr.translation.y = 2;
+  }
+  if(Move_Right){
+    cam.tr.translation += rotation*vec3(dL,0,0);
+    cam.tr.translation.y = 2;
+  }
+  cam.tr.rotation_center = cam.tr.translation;
+  //glTranslated(cos(cam.tr.rotation_euler.y) , sin(cam.tr.rotation_euler.z) ,0);
+
+
+  //Affichage des differents objets
   for(int i = 0; i < nb_obj; ++i)
     draw_obj3d(obj + i, cam);
 
@@ -76,9 +98,6 @@ static void init()
   glutSwapBuffers();
 }
 
-/*****************************************************************************\
-* keyboard_callback                                                           *
-\*****************************************************************************/
 static void keyboard_callback(unsigned char key, int, int)
 {
   float d_angle = 0.1f;
@@ -88,78 +107,126 @@ static void keyboard_callback(unsigned char key, int, int)
     case 'p':
       glhelper::print_screen();
       break;
-    case 'q':
-    case 'Q':
     case 27:
       exit(0);
       break;
-    case 'k':
-      angle_y_model_1 += d_angle;
+
+    case 'z':
+      Move_Up = true;
       break;
-    case 'm':
-      angle_y_model_1 -= d_angle;
+    case 's':
+      Move_Down = true;
       break;
-    
+    case 'q':
+      Move_Left = true;
+      break;
+    case 'd':
+      Move_Right = true;
+      break;
+    case 32:
+      SpaceBar = true;
+      break;
+    // case 'k':
+    //   angle_y_model_1 += d_angle;
+    //   break;
+    // case 'm':
+    //   angle_y_model_1 -= d_angle;
+    //   break;
   }
-  //cam.tr.rotation_center = matrice_rotation(angle_y_model_1 , 0.0f,1.0f,0.0f) * matrice_rotation(angle_x_model_1 , 1.0f,0.0f,0.0f);
 }
 
-/*****************************************************************************\
-* special_callback                                                            *
-\*****************************************************************************/
+static void keyboard_callback_stop(unsigned char key, int, int){
+    switch (key)
+  {
+    case 'z':
+      Move_Up = false;
+      break;
+    case 's':
+      Move_Down = false;
+      break;
+    case 'q':
+      Move_Left = false;
+      break;
+    case 'd':
+    Move_Right = false;
+      break;
+  }
+}
+
 static void special_callback(int key, int, int)
 {
-  float dL=0.1f;
-  mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
-  mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
-  mat4 rotation = rotation_x*rotation_y;
-  
   switch (key)
   {
     case GLUT_KEY_UP:
-      cam.tr.translation += rotation*vec3(0,0,dL);
-      cam.tr.translation.y = 2;
+      Move_Up = true;
       break;
-
     case GLUT_KEY_DOWN:
-      cam.tr.translation -= rotation*vec3(0,0,dL);
-      cam.tr.translation.y = 2;
-      //obj[0].tr.translation -= obj[0].tr.rotation_euler.z*vec3(0,0,dL);
+      Move_Down = true;
       break;
     case GLUT_KEY_LEFT:
-      cam.tr.translation -= rotation*vec3(dL,0,0);
-      cam.tr.translation.y = 2;
+      Move_Left = true;
       break;
     case GLUT_KEY_RIGHT:
-      cam.tr.translation += rotation*vec3(dL,0,0);
-      cam.tr.translation.y = 2;
+      Move_Right = true;
       break;
   }
-  
-  cam.tr.rotation_center = cam.tr.translation;
-  //glTranslated(cos(cam.tr.rotation_euler.y) , sin(cam.tr.rotation_euler.z) ,0);
 }
 
+static void special_callback_stop(int key, int,int)
+{
+  switch (key)
+  {
+    case GLUT_KEY_UP:
+      Move_Up = false;
+      break;
+    case GLUT_KEY_DOWN:
+      Move_Down = false;
+      break;
+    case GLUT_KEY_LEFT:
+      Move_Left = false;
+      break;
+    case GLUT_KEY_RIGHT:
+    Move_Right = false;
+      break;
+  }
+}
 
-/*****************************************************************************\
-* timer_callback                                                              *
-\*****************************************************************************/
 static void timer_callback(int)
 { 
-
   glutTimerFunc(25, timer_callback, 0);
-  float angle = 0.01;
-  if (droite){
+
+  //Gestion de la camera et du curseur
+  float angle = 0.02;
+  if (Cursor_Right){
     cam.tr.rotation_euler.y += angle;
   }
-  if (gauche){
+  if (Cursor_Left){
     cam.tr.rotation_euler.y -= angle;
   }
-  if (haut){
+  if (Cursor_Up){
     cam.tr.rotation_euler.x += angle;
   }
-  if (bas){
+  if (Cursor_Down){
     cam.tr.rotation_euler.x -= angle;
+  }
+ 
+  //Gestion du saut du personnage
+  if (SpaceBar){
+    //std::cout << obj[0].tr.translation.y << std::endl;
+    while(obj[0].tr.translation.y <= 2 && Jump == false){
+      obj[0].tr.translation.y += 0.1;
+      if (obj[0].tr.translation.y >= 2) {
+        Jump = true;
+      }
+      break;
+    }
+    if (Jump) {
+      obj[0].tr.translation.y -= 0.1;
+      if (obj[0].tr.translation.y <= 0) {
+        Jump = false;
+        SpaceBar = false;
+      }
+    }
   }
  
   // mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x, 1.0f, 0.0f, 0.0f);
@@ -189,33 +256,33 @@ static void test(int xmous,int ymous){
   vec2 posACT = vec2(xmous,ymous);
   int limminrectMousse = 15;
   int limmaxrectMousse = 30;
-  droite = false;
-  gauche = false;
-  haut = false;
-  bas = false;
+  Cursor_Right = false;
+  Cursor_Left = false;
+  Cursor_Up = false;
+  Cursor_Down = false;
   if (posACT.x > longu/2+limminrectMousse){
-    if (posACT.x > haute/2+limmaxrectMousse){
-      glutWarpPointer(haute/2+limmaxrectMousse,posACT.y);
+    if (posACT.x > Cursor_Upe/2+limmaxrectMousse){
+      glutWarpPointer(Cursor_Upe/2+limmaxrectMousse,posACT.y);
     }
-    droite = true;
+    Cursor_Right = true;
   }
   if (posACT.x < longu/2-limminrectMousse){
-    if (posACT.x < haute/2-limmaxrectMousse){
-      glutWarpPointer(haute/2-limmaxrectMousse,posACT.y);
+    if (posACT.x < Cursor_Upe/2-limmaxrectMousse){
+      glutWarpPointer(Cursor_Upe/2-limmaxrectMousse,posACT.y);
     }
-    gauche = true;
+    Cursor_Left = true;
   }
-  if (posACT.y > haute/2+limminrectMousse){
-    if (posACT.y > haute/2+limmaxrectMousse){
-      glutWarpPointer(posACT.x,haute/2+limmaxrectMousse);
+  if (posACT.y > Cursor_Upe/2+limminrectMousse){
+    if (posACT.y > Cursor_Upe/2+limmaxrectMousse){
+      glutWarpPointer(posACT.x,Cursor_Upe/2+limmaxrectMousse);
     }
-    haut = true;
+    Cursor_Up = true;
   }
-  if (posACT.y < haute/2-limminrectMousse){
-    if (posACT.y < haute/2-limmaxrectMousse){
-      glutWarpPointer(posACT.x,haute/2-limmaxrectMousse);
+  if (posACT.y < Cursor_Upe/2-limminrectMousse){
+    if (posACT.y < Cursor_Upe/2-limmaxrectMousse){
+      glutWarpPointer(posACT.x,Cursor_Upe/2-limmaxrectMousse);
     }
-    bas = true;
+    Cursor_Down = true;
   }
   // vec2 difPos = posACT-PosAnc;
 
@@ -226,13 +293,11 @@ static void test(int xmous,int ymous){
   // cam.tr.rotation_euler.x = cam.tr.rotation_euler.x + difPos.y*0.001f;
   // if difPos.x*0.001f
 
-  // glutWarpPointer(longu/2,haute/2);
+  // glutWarpPointer(longu/2,Cursor_Upe/2);
 
 
 }
-/*****************************************************************************\
-* main                                                                         *
-\*****************************************************************************/
+
 int main(int argc, char** argv)
 {
   
@@ -242,13 +307,16 @@ int main(int argc, char** argv)
   
   glutCreateWindow("OpenGL");
   // glutSetCursor(GLUT_CURSOR_NONE) ; 
-  glutWarpPointer(longu/2,haute/2);
+  glutWarpPointer(longu/2,Cursor_Upe/2);
 
   glutDisplayFunc(display_callback);
   glutKeyboardFunc(keyboard_callback);
+  glutKeyboardUpFunc(keyboard_callback_stop);
   glutSpecialFunc(special_callback);
+  glutSpecialUpFunc(special_callback_stop);
   glutPassiveMotionFunc(test);
   glutTimerFunc(25, timer_callback, 0);
+
 
   glewExperimental = true;
   glewInit();
@@ -263,43 +331,35 @@ int main(int argc, char** argv)
   return 0;
 }
 
+/*void draw_text(const text * const t)
+{
+  if(!t->visible) return;
 
+  glDisable(GL_DEPTH_TEST);
+  glUseProgram(t->prog);
 
-/*****************************************************************************\
-* draw_text                                                                   *
-\*****************************************************************************/
-// void draw_text(const text * const t)
-// {
-//   if(!t->visible) return;
+  vec2 size = (t->topRight - t->bottomLeft) / float(t->value.size());
   
-//   glDisable(GL_DEPTH_TEST);
-//   glUseProgram(t->prog);
+  GLint loc_size = glGetUniformLocation(gui_program_id, "size"); CHECK_GL_ERROR();
+  if (loc_size == -1) std::cerr << "Pas de variable uniforme : size" << std::endl;
+  glUniform2f(loc_size,size.x, size.y);     CHECK_GL_ERROR();
 
-//   vec2 size = (t->topRight - t->bottomLeft) / float(t->value.size());
+  glBindVertexArray(t->vao);                CHECK_GL_ERROR();
   
-//   GLint loc_size = glGetUniformLocation(gui_program_id, "size"); CHECK_GL_ERROR();
-//   if (loc_size == -1) std::cerr << "Pas de variable uniforme : size" << std::endl;
-//   glUniform2f(loc_size,size.x, size.y);     CHECK_GL_ERROR();
+  for(unsigned i = 0; i < t->value.size(); ++i)
+  {
+    GLint loc_start = glGetUniformLocation(gui_program_id, "start"); CHECK_GL_ERROR();
+    if (loc_start == -1) std::cerr << "Pas de variable uniforme : start" << std::endl;
+    glUniform2f(loc_start,t->bottomLeft.x+i*size.x, t->bottomLeft.y);    CHECK_GL_ERROR();
 
-//   glBindVertexArray(t->vao);                CHECK_GL_ERROR();
-  
-//   for(unsigned i = 0; i < t->value.size(); ++i)
-//   {
-//     GLint loc_start = glGetUniformLocation(gui_program_id, "start"); CHECK_GL_ERROR();
-//     if (loc_start == -1) std::cerr << "Pas de variable uniforme : start" << std::endl;
-//     glUniform2f(loc_start,t->bottomLeft.x+i*size.x, t->bottomLeft.y);    CHECK_GL_ERROR();
+    GLint loc_char = glGetUniformLocation(gui_program_id, "c"); CHECK_GL_ERROR();
+    if (loc_char == -1) std::cerr << "Pas de variable uniforme : c" << std::endl;
+    glUniform1i(loc_char, (int)t->value[i]);    CHECK_GL_ERROR();
+    glBindTexture(GL_TEXTURE_2D, t->texture_id);                            CHECK_GL_ERROR();
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);                    CHECK_GL_ERROR();
+  }
+}*/
 
-//     GLint loc_char = glGetUniformLocation(gui_program_id, "c"); CHECK_GL_ERROR();
-//     if (loc_char == -1) std::cerr << "Pas de variable uniforme : c" << std::endl;
-//     glUniform1i(loc_char, (int)t->value[i]);    CHECK_GL_ERROR();
-//     glBindTexture(GL_TEXTURE_2D, t->texture_id);                            CHECK_GL_ERROR();
-//     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);                    CHECK_GL_ERROR();
-//   }
-// }
-
-/*****************************************************************************\
-* draw_obj3d                                                                  *
-\*****************************************************************************/
 void draw_obj3d(const objet3d* const obj, camera cam)
 {
   if(!obj->visible) return;
@@ -357,36 +417,36 @@ void draw_obj3d(const objet3d* const obj, camera cam)
   glDrawElements(GL_TRIANGLES, 3*obj->nb_triangle, GL_UNSIGNED_INT, 0);     CHECK_GL_ERROR();
 }
 
-// void init_text(text *t){
-//   vec3 p0=vec3( 0.0f, 0.0f, 0.0f);
-//   vec3 p1=vec3( 0.0f, 1.0f, 0.0f);
-//   vec3 p2=vec3( 1.0f, 1.0f, 0.0f);
-//   vec3 p3=vec3( 1.0f, 0.0f, 0.0f);
+/*void init_text(text *t){
+  vec3 p0=vec3( 0.0f, 0.0f, 0.0f);
+  vec3 p1=vec3( 0.0f, 1.0f, 0.0f);
+  vec3 p2=vec3( 1.0f, 1.0f, 0.0f);
+  vec3 p3=vec3( 1.0f, 0.0f, 0.0f);
 
-//   vec3 geometrie[4] = {p0, p1, p2, p3}; 
-//   triangle_index index[2] = { triangle_index(0, 1, 2), triangle_index(0, 2, 3)};
+  vec3 geometrie[4] = {p0, p1, p2, p3}; 
+  triangle_index index[2] = { triangle_index(0, 1, 2), triangle_index(0, 2, 3)};
 
-//   glGenVertexArrays(1, &(t->vao));                                              CHECK_GL_ERROR();
-//   glBindVertexArray(t->vao);                                                  CHECK_GL_ERROR();
+  glGenVertexArrays(1, &(t->vao));                                              CHECK_GL_ERROR();
+  glBindVertexArray(t->vao);                                                  CHECK_GL_ERROR();
 
-//   GLuint vbo;
-//   glGenBuffers(1, &vbo);                                                       CHECK_GL_ERROR();
-//   glBindBuffer(GL_ARRAY_BUFFER,vbo);                                          CHECK_GL_ERROR();
-//   glBufferData(GL_ARRAY_BUFFER,sizeof(geometrie),geometrie,GL_STATIC_DRAW);   CHECK_GL_ERROR();
+  GLuint vbo;
+  glGenBuffers(1, &vbo);                                                       CHECK_GL_ERROR();
+  glBindBuffer(GL_ARRAY_BUFFER,vbo);                                          CHECK_GL_ERROR();
+  glBufferData(GL_ARRAY_BUFFER,sizeof(geometrie),geometrie,GL_STATIC_DRAW);   CHECK_GL_ERROR();
 
-//   glEnableVertexAttribArray(0); CHECK_GL_ERROR();
-//   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0); CHECK_GL_ERROR();
+  glEnableVertexAttribArray(0); CHECK_GL_ERROR();
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0); CHECK_GL_ERROR();
 
-//   GLuint vboi;
-//   glGenBuffers(1,&vboi);                                                      CHECK_GL_ERROR();
-//   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,vboi);                                 CHECK_GL_ERROR();
-//   glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(index),index,GL_STATIC_DRAW);   CHECK_GL_ERROR();
+  GLuint vboi;
+  glGenBuffers(1,&vboi);                                                      CHECK_GL_ERROR();
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,vboi);                                 CHECK_GL_ERROR();
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(index),index,GL_STATIC_DRAW);   CHECK_GL_ERROR();
 
-//   t->texture_id = glhelper::load_texture("data/fontB.tga");
+  t->texture_id = glhelper::load_texture("data/fontB.tga");
 
-//   t->visible = true;
-//   t->prog = gui_program_id;
-// }
+  t->visible = true;
+  t->prog = gui_program_id;
+}*/
 
 GLuint upload_mesh_to_gpu(const mesh& m)
 {
@@ -495,7 +555,6 @@ void init_model_2()
   obj[1].visible = true;
   obj[1].prog = shader_program_id;
 }
-
 
 void init_model_3()
 {

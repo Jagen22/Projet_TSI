@@ -25,7 +25,6 @@
 #include "vertex_opengl.hpp"
 #include "mesh.hpp"
 
-
 //matrice de transformation
 struct transformation
 {
@@ -63,7 +62,21 @@ struct text : public objet
   vec2 topRight;
 };
 
+//Variables globales :
+bool Move_Up = false;
+bool Move_Down = false;
+bool Move_Right = false;
+bool Move_Left = false;
 
+bool SpaceBar = false;
+bool Jump = false;
+
+bool Cursor_Up;
+bool Cursor_Right;
+bool Cursor_Left;
+bool Cursor_Down;
+
+//Prototypes des fonctions :
 void init_text(text *t);
 void draw_text(const text* const t);
 
