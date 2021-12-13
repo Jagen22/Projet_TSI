@@ -15,19 +15,22 @@ cd ..
 ./build/projet
 ```
 
-ou 
+ou bien en utilisant directement `script.sh`
 
-```sh
-mkdir build
-cmake . -B build
-make -C ./build && ./build/projet
-```
 
-**Testé sur windows avec Visual Studio Community 2019 (MSVC2019)**
+## TODO : 
 
-**Note sur l'utilisation des IDE (QtCreator, etc)**
+- [ ] Augmentation de vitesse de caméra ?
+- [ ] Limiter le déplacement vertical de la caméra en haut et en bas
+- [x] Déplacement fluide
+- [x] Déplacement avec plusieurs touches en même temps
+- [x] Déplacement ZQSD & flèches directionnelles ?
+- [x] Saut
+- [ ] Implémenter les mains.obj
+- [ ] Associer déplacement objet et caméra
+- [ ] Interaction avec objet
+- [ ] Creation décor
+- [ ] Detection obstacle
+- [ ] Interface objet ?
+- [ ] Lumière directionnelle (lampe torche)
 
-Le repertoire d'execution doit être tp_tsi.
-C'est a dire que le repertoire data/ doit être accessible.         
-
-Image à usage libre : https://www.pexels.com/photo/boston-terrier-wearing-unicorn-pet-costume-1564506/
