@@ -34,3 +34,8 @@ ou bien en utilisant directement `script.sh`
 - [ ] Interface objet ?
 - [ ] Lumière directionnelle (lampe torche)
 
+
+## Liens utiles / Sources :
+
+https://www.lighthouse3d.com/tutorials/glut-tutorial/the-code-so-far-ii/
+http://freeglut.sourceforge.net/docs/api.php
