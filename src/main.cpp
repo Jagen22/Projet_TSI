@@ -7,10 +7,17 @@
 
 #include "declaration.h"
 
+vec2 PosAnc = vec2(300,300);
 //identifiant des shaders
 GLuint shader_program_id;
 GLuint gui_program_id;
 
+int longu = 600;
+int haute = 600; 
+bool haut;
+bool droite;
+bool gauche;
+bool bas;
 camera cam;
 
 const int nb_obj = 3;
@@ -18,8 +25,11 @@ objet3d obj[nb_obj];
 
 const int nb_text = 2;
 text text_to_draw[nb_text];
+vec3 lampetorche = vec3(0, 0.01, 0);
 
-
+float angle_x_model_1 = 0.0f;
+float angle_y_model_1 = 0.0f;
+float angle_view = 0.0f;
 /*****************************************************************************\
 * initialisation                                                              *
 \*****************************************************************************/
@@ -28,26 +38,25 @@ static void init()
   shader_program_id = glhelper::create_program_from_file("shaders/shader.vert", "shaders/shader.frag"); CHECK_GL_ERROR();
 
   cam.projection = matrice_projection(60.0f*M_PI/180.0f,1.0f,0.01f,100.0f);
-  cam.tr.translation = vec3(0.0f, 1.0f, 0.0f);
+  cam.tr.translation = vec3(1.0f, 2.0f, 0.0f);
   // cam.tr.translation = vec3(0.0f, 20.0f, 0.0f);
   // cam.tr.rotation_center = vec3(0.0f, 20.0f, 0.0f);
   // cam.tr.rotation_euler = vec3(M_PI/2., 0.0f, 0.0f);
-
   init_model_1();
   init_model_2();
   init_model_3();
 
-  gui_program_id = glhelper::create_program_from_file("shaders/gui.vert", "shaders/gui.frag"); CHECK_GL_ERROR();
+  // gui_program_id = glhelper::create_program_from_file("shaders/gui.vert", "shaders/gui.frag"); CHECK_GL_ERROR();
 
-  text_to_draw[0].value = "CPE";
-  text_to_draw[0].bottomLeft = vec2(-0.2, 0.5);
-  text_to_draw[0].topRight = vec2(0.2, 1);
-  init_text(text_to_draw);
+  // text_to_draw[0].value = "CE";
+  // text_to_draw[0].bottomLeft = vec2(-0.2, 0.5);
+  // text_to_draw[0].topRight = vec2(0.2, 1);
+  // init_text(text_to_draw);
 
-  text_to_draw[1]=text_to_draw[0];
-  text_to_draw[1].value = "Lyon";
-  text_to_draw[1].bottomLeft.y = 0.0f;
-  text_to_draw[1].topRight.y = 0.5f;
+  // text_to_draw[1]=text_to_draw[0];
+  // text_to_draw[1].value = "Lyon";
+  // text_to_draw[1].bottomLeft.y = 0.0f;
+  // text_to_draw[1].topRight.y = 0.5f;
 }
 
 /*****************************************************************************\
@@ -61,8 +70,8 @@ static void init()
   for(int i = 0; i < nb_obj; ++i)
     draw_obj3d(obj + i, cam);
 
-  for(int i = 0; i < nb_text; ++i)
-    draw_text(text_to_draw + i);
+  // for(int i = 0; i < nb_text; ++i)
+  //   draw_text(text_to_draw + i);
 
   glutSwapBuffers();
 }
@@ -72,6 +81,8 @@ static void init()
 \*****************************************************************************/
 static void keyboard_callback(unsigned char key, int, int)
 {
+  float d_angle = 0.1f;
+
   switch (key)
   {
     case 'p':
@@ -82,7 +93,15 @@ static void keyboard_callback(unsigned char key, int, int)
     case 27:
       exit(0);
       break;
+    case 'k':
+      angle_y_model_1 += d_angle;
+      break;
+    case 'm':
+      angle_y_model_1 -= d_angle;
+      break;
+    
   }
+  //cam.tr.rotation_center = matrice_rotation(angle_y_model_1 , 0.0f,1.0f,0.0f) * matrice_rotation(angle_x_model_1 , 1.0f,0.0f,0.0f);
 }
 
 /*****************************************************************************\
@@ -90,6 +109,35 @@ static void keyboard_callback(unsigned char key, int, int)
 \*****************************************************************************/
 static void special_callback(int key, int, int)
 {
+  float dL=0.1f;
+  mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
+  mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
+  mat4 rotation = rotation_x*rotation_y;
+  
+  switch (key)
+  {
+    case GLUT_KEY_UP:
+      cam.tr.translation += rotation*vec3(0,0,dL);
+      cam.tr.translation.y = 2;
+      break;
+
+    case GLUT_KEY_DOWN:
+      cam.tr.translation -= rotation*vec3(0,0,dL);
+      cam.tr.translation.y = 2;
+      //obj[0].tr.translation -= obj[0].tr.rotation_euler.z*vec3(0,0,dL);
+      break;
+    case GLUT_KEY_LEFT:
+      cam.tr.translation -= rotation*vec3(dL,0,0);
+      cam.tr.translation.y = 2;
+      break;
+    case GLUT_KEY_RIGHT:
+      cam.tr.translation += rotation*vec3(dL,0,0);
+      cam.tr.translation.y = 2;
+      break;
+  }
+  
+  cam.tr.rotation_center = cam.tr.translation;
+  //glTranslated(cos(cam.tr.rotation_euler.y) , sin(cam.tr.rotation_euler.z) ,0);
 }
 
 
@@ -97,41 +145,115 @@ static void special_callback(int key, int, int)
 * timer_callback                                                              *
 \*****************************************************************************/
 static void timer_callback(int)
-{
+{ 
+
   glutTimerFunc(25, timer_callback, 0);
+  float angle = 0.01;
+  if (droite){
+    cam.tr.rotation_euler.y += angle;
+  }
+  if (gauche){
+    cam.tr.rotation_euler.y -= angle;
+  }
+  if (haut){
+    cam.tr.rotation_euler.x += angle;
+  }
+  if (bas){
+    cam.tr.rotation_euler.x -= angle;
+  }
+ 
+  // mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x, 1.0f, 0.0f, 0.0f);
+  // mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
+  // mat4 rotation_z = matrice_rotation(cam.tr.rotation_euler.z, 0.0f, 0.0f, 1.0f);
+  // std::cout << rotation_x*rotation_y*rotation_z << std::endl;
+  //cam.projection = rotation_x*rotation_y*rotation_z;
+  
+
+  // float Theta = cam.tr.rotation_euler.z;
+  // float phi = cam.tr.rotation_euler.y;
+  // float psi = cam.tr.rotation_euler.x;
+
+  // cam.projection = mat4( x11,x12,x13,0,
+  //                        x21,x22,x23,0,
+  //                        x31,x32,x33,0,
+  //                        0,0,0,0);
+  // cam.tr.Projection = {{cos(psi)*cos(phi)-sin(phi)*cos(Theta)*sin(psi) ,sin(psi)*cos(phi)+cos(psi)*cos(Theta)*sin(phi) ,sin(Theta)*sin(phi)},
+  //                      {-cos(psi)*sin(phi)-sin(phi)*cos(Theta)*cos(psi),-sin(psi)*sin(phi)-cos(phi)*cos(Theta)*cos(psi),sin(Theta)*cos(phi)},
+  //                      {sin(phi)*sin(Theta),-cos(psi)*sin(Theta),cos(Theta)}};
+
+
   glutPostRedisplay();
 }
 
+static void test(int xmous,int ymous){
+  vec2 posACT = vec2(xmous,ymous);
+  int limminrectMousse = 15;
+  int limmaxrectMousse = 30;
+  droite = false;
+  gauche = false;
+  haut = false;
+  bas = false;
+  if (posACT.x > longu/2+limminrectMousse){
+    if (posACT.x > haute/2+limmaxrectMousse){
+      glutWarpPointer(haute/2+limmaxrectMousse,posACT.y);
+    }
+    droite = true;
+  }
+  if (posACT.x < longu/2-limminrectMousse){
+    if (posACT.x < haute/2-limmaxrectMousse){
+      glutWarpPointer(haute/2-limmaxrectMousse,posACT.y);
+    }
+    gauche = true;
+  }
+  if (posACT.y > haute/2+limminrectMousse){
+    if (posACT.y > haute/2+limmaxrectMousse){
+      glutWarpPointer(posACT.x,haute/2+limmaxrectMousse);
+    }
+    haut = true;
+  }
+  if (posACT.y < haute/2-limminrectMousse){
+    if (posACT.y < haute/2-limmaxrectMousse){
+      glutWarpPointer(posACT.x,haute/2-limmaxrectMousse);
+    }
+    bas = true;
+  }
+  // vec2 difPos = posACT-PosAnc;
 
-/*****************************************************************************\
-* mouse_movement_detection                                                              *
-\*****************************************************************************/
-static void move_mouse(int xMouse, int yMouse)
-{
-  cam.tr.rotation_euler.y = cam.tr.rotation_euler.y - xMouse*0.001f;
-  cam.tr.rotation_euler.x = cam.tr.rotation_euler.x - yMouse*0.001f;
+  // std::cout << cam.tr.rotation_euler << std::endl;
+  // std::cout << "*************************" << std::endl;
+
+  // cam.tr.rotation_euler.y = cam.tr.rotation_euler.y + difPos.x*0.001f;
+  // cam.tr.rotation_euler.x = cam.tr.rotation_euler.x + difPos.y*0.001f;
+  // if difPos.x*0.001f
+
+  // glutWarpPointer(longu/2,haute/2);
+
+
 }
-
-
 /*****************************************************************************\
 * main                                                                         *
 \*****************************************************************************/
 int main(int argc, char** argv)
 {
+  
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | MACOSX_COMPATIBILITY);
   glutInitWindowSize(600, 600);
+  
   glutCreateWindow("OpenGL");
+  // glutSetCursor(GLUT_CURSOR_NONE) ; 
+  glutWarpPointer(longu/2,haute/2);
 
   glutDisplayFunc(display_callback);
   glutKeyboardFunc(keyboard_callback);
   glutSpecialFunc(special_callback);
-  glutPassiveMotionFunc(move_mouse);
-
+  glutPassiveMotionFunc(test);
   glutTimerFunc(25, timer_callback, 0);
 
   glewExperimental = true;
   glewInit();
+
+
 
   std::cout << "OpenGL: " << (GLchar *)(glGetString(GL_VERSION)) << std::endl;
 
@@ -141,37 +263,39 @@ int main(int argc, char** argv)
   return 0;
 }
 
+
+
 /*****************************************************************************\
 * draw_text                                                                   *
 \*****************************************************************************/
-void draw_text(const text * const t)
-{
-  if(!t->visible) return;
+// void draw_text(const text * const t)
+// {
+//   if(!t->visible) return;
   
-  glDisable(GL_DEPTH_TEST);
-  glUseProgram(t->prog);
+//   glDisable(GL_DEPTH_TEST);
+//   glUseProgram(t->prog);
 
-  vec2 size = (t->topRight - t->bottomLeft) / float(t->value.size());
+//   vec2 size = (t->topRight - t->bottomLeft) / float(t->value.size());
   
-  GLint loc_size = glGetUniformLocation(gui_program_id, "size"); CHECK_GL_ERROR();
-  if (loc_size == -1) std::cerr << "Pas de variable uniforme : size" << std::endl;
-  glUniform2f(loc_size,size.x, size.y);     CHECK_GL_ERROR();
+//   GLint loc_size = glGetUniformLocation(gui_program_id, "size"); CHECK_GL_ERROR();
+//   if (loc_size == -1) std::cerr << "Pas de variable uniforme : size" << std::endl;
+//   glUniform2f(loc_size,size.x, size.y);     CHECK_GL_ERROR();
 
-  glBindVertexArray(t->vao);                CHECK_GL_ERROR();
+//   glBindVertexArray(t->vao);                CHECK_GL_ERROR();
   
-  for(unsigned i = 0; i < t->value.size(); ++i)
-  {
-    GLint loc_start = glGetUniformLocation(gui_program_id, "start"); CHECK_GL_ERROR();
-    if (loc_start == -1) std::cerr << "Pas de variable uniforme : start" << std::endl;
-    glUniform2f(loc_start,t->bottomLeft.x+i*size.x, t->bottomLeft.y);    CHECK_GL_ERROR();
+//   for(unsigned i = 0; i < t->value.size(); ++i)
+//   {
+//     GLint loc_start = glGetUniformLocation(gui_program_id, "start"); CHECK_GL_ERROR();
+//     if (loc_start == -1) std::cerr << "Pas de variable uniforme : start" << std::endl;
+//     glUniform2f(loc_start,t->bottomLeft.x+i*size.x, t->bottomLeft.y);    CHECK_GL_ERROR();
 
-    GLint loc_char = glGetUniformLocation(gui_program_id, "c"); CHECK_GL_ERROR();
-    if (loc_char == -1) std::cerr << "Pas de variable uniforme : c" << std::endl;
-    glUniform1i(loc_char, (int)t->value[i]);    CHECK_GL_ERROR();
-    glBindTexture(GL_TEXTURE_2D, t->texture_id);                            CHECK_GL_ERROR();
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);                    CHECK_GL_ERROR();
-  }
-}
+//     GLint loc_char = glGetUniformLocation(gui_program_id, "c"); CHECK_GL_ERROR();
+//     if (loc_char == -1) std::cerr << "Pas de variable uniforme : c" << std::endl;
+//     glUniform1i(loc_char, (int)t->value[i]);    CHECK_GL_ERROR();
+//     glBindTexture(GL_TEXTURE_2D, t->texture_id);                            CHECK_GL_ERROR();
+//     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);                    CHECK_GL_ERROR();
+//   }
+// }
 
 /*****************************************************************************\
 * draw_obj3d                                                                  *
@@ -184,11 +308,15 @@ void draw_obj3d(const objet3d* const obj, camera cam)
   glUseProgram(obj->prog);
   
   {
-    GLint loc_projection = glGetUniformLocation(shader_program_id, "projection"); CHECK_GL_ERROR();
+    GLint loc_projection = glGetUniformLocation(obj->prog, "projection"); CHECK_GL_ERROR();
     if (loc_projection == -1) std::cerr << "Pas de variable uniforme : projection" << std::endl;
     glUniformMatrix4fv(loc_projection,1,false,pointeur(cam.projection));    CHECK_GL_ERROR();
 
-    GLint loc_rotation_view = glGetUniformLocation(shader_program_id, "rotation_view"); CHECK_GL_ERROR();
+    GLint loc_lampetorche = glGetUniformLocation(obj->prog, "lampetorche"); CHECK_GL_ERROR();
+    if (loc_lampetorche == -1) std::cerr << "Pas de variable uniforme : lampetorche" << std::endl;
+    glUniform3f(loc_lampetorche,lampetorche.x,lampetorche.y,lampetorche.z);    CHECK_GL_ERROR();
+
+    GLint loc_rotation_view = glGetUniformLocation(obj->prog, "rotation_view"); CHECK_GL_ERROR();
     if (loc_rotation_view == -1) std::cerr << "Pas de variable uniforme : rotation_view" << std::endl;
     mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x, 1.0f, 0.0f, 0.0f);
     mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
@@ -196,12 +324,12 @@ void draw_obj3d(const objet3d* const obj, camera cam)
     glUniformMatrix4fv(loc_rotation_view,1,false,pointeur(rotation_x*rotation_y*rotation_z));    CHECK_GL_ERROR();
 
     vec3 cv = cam.tr.rotation_center;
-    GLint loc_rotation_center_view = glGetUniformLocation(shader_program_id, "rotation_center_view"); CHECK_GL_ERROR();
+    GLint loc_rotation_center_view = glGetUniformLocation(obj->prog, "rotation_center_view"); CHECK_GL_ERROR();
     if (loc_rotation_center_view == -1) std::cerr << "Pas de variable uniforme : rotation_center_view" << std::endl;
     glUniform4f(loc_rotation_center_view , cv.x,cv.y,cv.z , 0.0f); CHECK_GL_ERROR();
 
     vec3 tv = cam.tr.translation;
-    GLint loc_translation_view = glGetUniformLocation(shader_program_id, "translation_view"); CHECK_GL_ERROR();
+    GLint loc_translation_view = glGetUniformLocation(obj->prog, "translation_view"); CHECK_GL_ERROR();
     if (loc_translation_view == -1) std::cerr << "Pas de variable uniforme : translation_view" << std::endl;
     glUniform4f(loc_translation_view , tv.x,tv.y,tv.z , 0.0f); CHECK_GL_ERROR();
   }
@@ -229,36 +357,36 @@ void draw_obj3d(const objet3d* const obj, camera cam)
   glDrawElements(GL_TRIANGLES, 3*obj->nb_triangle, GL_UNSIGNED_INT, 0);     CHECK_GL_ERROR();
 }
 
-void init_text(text *t){
-  vec3 p0=vec3( 0.0f, 0.0f, 0.0f);
-  vec3 p1=vec3( 0.0f, 1.0f, 0.0f);
-  vec3 p2=vec3( 1.0f, 1.0f, 0.0f);
-  vec3 p3=vec3( 1.0f, 0.0f, 0.0f);
+// void init_text(text *t){
+//   vec3 p0=vec3( 0.0f, 0.0f, 0.0f);
+//   vec3 p1=vec3( 0.0f, 1.0f, 0.0f);
+//   vec3 p2=vec3( 1.0f, 1.0f, 0.0f);
+//   vec3 p3=vec3( 1.0f, 0.0f, 0.0f);
 
-  vec3 geometrie[4] = {p0, p1, p2, p3}; 
-  triangle_index index[2] = { triangle_index(0, 1, 2), triangle_index(0, 2, 3)};
+//   vec3 geometrie[4] = {p0, p1, p2, p3}; 
+//   triangle_index index[2] = { triangle_index(0, 1, 2), triangle_index(0, 2, 3)};
 
-  glGenVertexArrays(1, &(t->vao));                                              CHECK_GL_ERROR();
-  glBindVertexArray(t->vao);                                                  CHECK_GL_ERROR();
+//   glGenVertexArrays(1, &(t->vao));                                              CHECK_GL_ERROR();
+//   glBindVertexArray(t->vao);                                                  CHECK_GL_ERROR();
 
-  GLuint vbo;
-  glGenBuffers(1, &vbo);                                                       CHECK_GL_ERROR();
-  glBindBuffer(GL_ARRAY_BUFFER,vbo);                                          CHECK_GL_ERROR();
-  glBufferData(GL_ARRAY_BUFFER,sizeof(geometrie),geometrie,GL_STATIC_DRAW);   CHECK_GL_ERROR();
+//   GLuint vbo;
+//   glGenBuffers(1, &vbo);                                                       CHECK_GL_ERROR();
+//   glBindBuffer(GL_ARRAY_BUFFER,vbo);                                          CHECK_GL_ERROR();
+//   glBufferData(GL_ARRAY_BUFFER,sizeof(geometrie),geometrie,GL_STATIC_DRAW);   CHECK_GL_ERROR();
 
-  glEnableVertexAttribArray(0); CHECK_GL_ERROR();
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0); CHECK_GL_ERROR();
+//   glEnableVertexAttribArray(0); CHECK_GL_ERROR();
+//   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0); CHECK_GL_ERROR();
 
-  GLuint vboi;
-  glGenBuffers(1,&vboi);                                                      CHECK_GL_ERROR();
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,vboi);                                 CHECK_GL_ERROR();
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(index),index,GL_STATIC_DRAW);   CHECK_GL_ERROR();
+//   GLuint vboi;
+//   glGenBuffers(1,&vboi);                                                      CHECK_GL_ERROR();
+//   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,vboi);                                 CHECK_GL_ERROR();
+//   glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(index),index,GL_STATIC_DRAW);   CHECK_GL_ERROR();
 
-  t->texture_id = glhelper::load_texture("data/fontB.tga");
+//   t->texture_id = glhelper::load_texture("data/fontB.tga");
 
-  t->visible = true;
-  t->prog = gui_program_id;
-}
+//   t->visible = true;
+//   t->prog = gui_program_id;
+// }
 
 GLuint upload_mesh_to_gpu(const mesh& m)
 {
@@ -285,7 +413,7 @@ GLuint upload_mesh_to_gpu(const mesh& m)
   glGenBuffers(1,&vboi); CHECK_GL_ERROR();
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,vboi); CHECK_GL_ERROR();
   glBufferData(GL_ELEMENT_ARRAY_BUFFER,m.connectivity.size()*sizeof(triangle_index),&m.connectivity[0],GL_STATIC_DRAW); CHECK_GL_ERROR();
-
+  
   return vao;
 }
 
@@ -315,7 +443,7 @@ void init_model_1()
   obj[0].visible = true;
   obj[0].prog = shader_program_id;
 
-  obj[0].tr.translation = vec3(-2.0, 0.0, -10.0);
+  obj[0].tr.translation = vec3(-2.0, 0.0, -5.0);
 }
 
 void init_model_2()
@@ -372,10 +500,10 @@ void init_model_2()
 void init_model_3()
 {
   // Chargement d'un maillage a partir d'un fichier
-  mesh m = load_off_file("data/armadillo_light.off");
+  mesh m = load_obj_file("data/stegosaurus.obj");
 
   // Affecte une transformation sur les sommets du maillage
-  float s = 0.01f;
+  float s = 0.1f;
   mat4 transform = mat4(   s, 0.0f, 0.0f, 0.0f,
       0.0f,    s, 0.0f, 0.50f,
       0.0f, 0.0f,   s , 0.0f,
@@ -385,6 +513,7 @@ void init_model_3()
   apply_deformation(&m,transform);
 
   update_normals(&m);
+  //invert_normals(&m);
   fill_color(&m,vec3(1.0f,1.0f,1.0f));
 
   obj[2].vao = upload_mesh_to_gpu(m);
