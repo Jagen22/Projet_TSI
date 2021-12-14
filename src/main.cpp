@@ -68,21 +68,22 @@ static void display_callback()
 
   if (Move_Up){
     cam.tr.translation += rotation*vec3(0,0,dL);
-    cam.tr.translation.y = 2;
+    if (!SpaceBar){cam.tr.translation.y = 2;}
     //obj[0].tr.translation.x += dL;
   }
   if(Move_Down){
     cam.tr.translation -= rotation*vec3(0,0,dL);
-    cam.tr.translation.y = 2;
+    if (!SpaceBar){cam.tr.translation.y = 2;}
+    
     //obj[0].tr.translation -= obj[0].tr.rotation_euler.z*vec3(0,0,dL);
   }
   if(Move_Left){
     cam.tr.translation -= rotation*vec3(dL,0,0);
-    cam.tr.translation.y = 2;
+    if (!SpaceBar){cam.tr.translation.y = 2;}
   }
   if(Move_Right){
     cam.tr.translation += rotation*vec3(dL,0,0);
-    cam.tr.translation.y = 2;
+    if (!SpaceBar){cam.tr.translation.y = 2;}
   }
   cam.tr.rotation_center = cam.tr.translation;
   //glTranslated(cos(cam.tr.rotation_euler.y) , sin(cam.tr.rotation_euler.z) ,0);
@@ -214,6 +215,7 @@ static void timer_callback(int)
   if (SpaceBar){
     //std::cout << obj[0].tr.translation.y << std::endl;
     while(obj[0].tr.translation.y <= 2 && Jump == false){
+      cam.tr.translation.y += 0.1;
       obj[0].tr.translation.y += 0.1;
       if (obj[0].tr.translation.y >= 2) {
         Jump = true;
@@ -221,6 +223,7 @@ static void timer_callback(int)
       break;
     }
     if (Jump) {
+      cam.tr.translation.y-=0.1;
       obj[0].tr.translation.y -= 0.1;
       if (obj[0].tr.translation.y <= 0) {
         Jump = false;
