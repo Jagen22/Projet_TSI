@@ -24,7 +24,8 @@ objet3d obj[nb_obj];
 
 const int nb_text = 2;
 text text_to_draw[nb_text];
-vec3 lampetorche = vec3(0, 0.01, 0);
+// vec3 lampetorcheposition = cam.tr.translation;
+vec3 lampetorchedirection = vec3(0,0.25,1);
 
 float angle_x_model_1 = 0.0f;
 float angle_y_model_1 = 0.0f;
@@ -210,6 +211,10 @@ static void timer_callback(int)
   if (Cursor_Down){
     cam.tr.rotation_euler.x -= angle;
   }
+  // mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
+  // mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
+  // mat4 rotation = rotation_x*rotation_y;
+
  
   //Gestion du saut du personnage
   if (SpaceBar){
@@ -375,9 +380,13 @@ void draw_obj3d(const objet3d* const obj, camera cam)
     if (loc_projection == -1) std::cerr << "Pas de variable uniforme : projection" << std::endl;
     glUniformMatrix4fv(loc_projection,1,false,pointeur(cam.projection));    CHECK_GL_ERROR();
 
-    GLint loc_lampetorche = glGetUniformLocation(obj->prog, "lampetorche"); CHECK_GL_ERROR();
-    if (loc_lampetorche == -1) std::cerr << "Pas de variable uniforme : lampetorche" << std::endl;
-    glUniform3f(loc_lampetorche,lampetorche.x,lampetorche.y,lampetorche.z);    CHECK_GL_ERROR();
+    // GLint loc_lampetorcheposition = glGetUniformLocation(obj->prog, "lampetorcheposition"); CHECK_GL_ERROR();
+    // if (loc_lampetorcheposition == -1) std::cerr << "Pas de variable uniforme : lampetorcheposition" << std::endl;
+    // glUniform3f(loc_lampetorcheposition,lampetorcheposition.x,lampetorcheposition.y,lampetorcheposition.z);    CHECK_GL_ERROR();
+
+    GLint loc_lampetorchedirection = glGetUniformLocation(obj->prog, "lampetorchedirection"); CHECK_GL_ERROR();
+    if (loc_lampetorchedirection == -1) std::cerr << "Pas de variable uniforme : lampetorchedirection" << std::endl;
+    glUniform3f(loc_lampetorchedirection,lampetorchedirection.x,lampetorchedirection.y,lampetorchedirection.z);    CHECK_GL_ERROR();
 
     GLint loc_rotation_view = glGetUniformLocation(obj->prog, "rotation_view"); CHECK_GL_ERROR();
     if (loc_rotation_view == -1) std::cerr << "Pas de variable uniforme : rotation_view" << std::endl;
