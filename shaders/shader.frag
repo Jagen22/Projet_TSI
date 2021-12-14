@@ -18,7 +18,7 @@ void main (void)
 {
 
   vec3 lampetorcheposition = vec3(0,2,0);
-  // vec3 lampetorchedirection = vec3(0,0,1);
+  vec3 lampetorchedirection = vec3(0,0.25,1);
   //vecteurs pour le calcul d'illumination
   vec3 n = normalize(vnormale);
   vec3 d = normalize(lampetorcheposition-coordonnee_3d_locale);
@@ -38,7 +38,7 @@ void main (void)
 
 
   vec4 white = vec4(1.0,1.0,1.0,1.0);
-  vec4 yellow = vec4(1.0,1.0,0.2,0.0);
+  vec4 yellow = vec4(0.9,0.7,0.4,1.0);
 
   //recuperation de la texture
   vec4 color_texture = texture2D(texture, vtex);

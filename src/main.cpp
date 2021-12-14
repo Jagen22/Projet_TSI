@@ -24,8 +24,6 @@ objet3d obj[nb_obj];
 
 const int nb_text = 2;
 text text_to_draw[nb_text];
-// vec3 lampetorcheposition = cam.tr.translation;
-vec3 lampetorchedirection = vec3(0,0.25,1);
 
 float angle_x_model_1 = 0.0f;
 float angle_y_model_1 = 0.0f;
@@ -384,9 +382,9 @@ void draw_obj3d(const objet3d* const obj, camera cam)
     // if (loc_lampetorcheposition == -1) std::cerr << "Pas de variable uniforme : lampetorcheposition" << std::endl;
     // glUniform3f(loc_lampetorcheposition,lampetorcheposition.x,lampetorcheposition.y,lampetorcheposition.z);    CHECK_GL_ERROR();
 
-    GLint loc_lampetorchedirection = glGetUniformLocation(obj->prog, "lampetorchedirection"); CHECK_GL_ERROR();
-    if (loc_lampetorchedirection == -1) std::cerr << "Pas de variable uniforme : lampetorchedirection" << std::endl;
-    glUniform3f(loc_lampetorchedirection,lampetorchedirection.x,lampetorchedirection.y,lampetorchedirection.z);    CHECK_GL_ERROR();
+    // GLint loc_lampetorchedirection = glGetUniformLocation(obj->prog, "lampetorchedirection"); CHECK_GL_ERROR();
+    // if (loc_lampetorchedirection == -1) std::cerr << "Pas de variable uniforme : lampetorchedirection" << std::endl;
+    // glUniform3f(loc_lampetorchedirection,lampetorchedirection.x,lampetorchedirection.y,lampetorchedirection.z);    CHECK_GL_ERROR();
 
     GLint loc_rotation_view = glGetUniformLocation(obj->prog, "rotation_view"); CHECK_GL_ERROR();
     if (loc_rotation_view == -1) std::cerr << "Pas de variable uniforme : rotation_view" << std::endl;
