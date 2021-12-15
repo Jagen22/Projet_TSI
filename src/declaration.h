@@ -81,8 +81,14 @@ void init_text(text *t);
 void draw_text(const text* const t);
 
 
-void init_model_1();
-void init_model_2();
-void init_model_3();
+void init_model_dino();
+void init_model_ground();
+void init_model_ceiling();
+void init_model_wall1();
+void init_model_wall2();
+void init_model_wall3();
+void init_model_wall4();
+
+
 
 void draw_obj3d(const objet3d* const obj, camera cam);
