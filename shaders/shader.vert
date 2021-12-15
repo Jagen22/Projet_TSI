@@ -25,22 +25,25 @@ out vec2 vtex;
 void main (void)
 {
   //Les coordonnees 3D du sommet
-  coordonnee_3d = position;
-
   //application de la deformation du model
   vec4 p_model = rotation_model*(vec4(position, 1.0)-rotation_center_model)+rotation_center_model+translation_model;
   //application de la deformation de la vue
   vec4 p_modelview = rotation_view*(p_model-rotation_center_view)+rotation_center_view-translation_view;
+
+  //Les coordonnees 3D du sommet
+  
+  coordonnee_3d = p_model.xyz;
+
 
   coordonnee_3d_locale = p_modelview.xyz;
 
 
   //Projection du sommet
   vec4 p_proj = projection*p_modelview;
-
   //Gestion des normales
   vec4 n = rotation_view*rotation_model*vec4(normale,1.0);
   vnormale=n.xyz;
+
 
   //Couleur du sommet
   vcolor=vec4(color,1.0);

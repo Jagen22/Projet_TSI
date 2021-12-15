@@ -19,7 +19,7 @@ float dL=0.1f;
 
 camera cam;
 
-const int nb_obj = 3;
+const int nb_obj = 4;
 objet3d obj[nb_obj];
 
 const int nb_text = 2;
@@ -28,6 +28,12 @@ text text_to_draw[nb_text];
 float angle_x_model_1 = 0.0f;
 float angle_y_model_1 = 0.0f;
 float angle_view = 0.0f;
+
+int torche = 0;
+int lumiereR = 0;
+int lumiereV = 0;
+int lumiereB = 0;
+
 
 static void init()
 {
@@ -91,7 +97,7 @@ static void display_callback()
   //Affichage des differents objets
   for(int i = 0; i < nb_obj; ++i)
     draw_obj3d(obj + i, cam);
-
+  
   // for(int i = 0; i < nb_text; ++i)
   //   draw_text(text_to_draw + i);
 
@@ -125,6 +131,18 @@ static void keyboard_callback(unsigned char key, int, int)
       break;
     case 32:
       SpaceBar = true;
+      break;
+    case 't':
+      torche = 1-torche;
+      break;
+    case 'r':
+      lumiereR = 1-lumiereR;
+      break;
+    case 'v':
+      lumiereV = 1-lumiereV;
+      break;
+    case 'b':
+      lumiereB = 1-lumiereB;
       break;
     // case 'k':
     //   angle_y_model_1 += d_angle;
@@ -199,15 +217,17 @@ static void timer_callback(int)
   float angle = 0.02;
   if (Cursor_Right){
     cam.tr.rotation_euler.y += angle;
+    
   }
   if (Cursor_Left){
     cam.tr.rotation_euler.y -= angle;
   }
-  if (Cursor_Up){
+  if (Cursor_Up && cam.tr.rotation_euler.x < 0.5){
     cam.tr.rotation_euler.x += angle;
   }
-  if (Cursor_Down){
+  if (Cursor_Down && cam.tr.rotation_euler.x > -1){
     cam.tr.rotation_euler.x -= angle;
+    //std::cout << cam.tr.rotation_euler.x  << std::endl;
   }
   // mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
   // mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
@@ -323,7 +343,7 @@ int main(int argc, char** argv)
   glutPassiveMotionFunc(test);
   glutTimerFunc(25, timer_callback, 0);
 
-
+  
   glewExperimental = true;
   glewInit();
 
@@ -378,13 +398,23 @@ void draw_obj3d(const objet3d* const obj, camera cam)
     if (loc_projection == -1) std::cerr << "Pas de variable uniforme : projection" << std::endl;
     glUniformMatrix4fv(loc_projection,1,false,pointeur(cam.projection));    CHECK_GL_ERROR();
 
-    // GLint loc_lampetorcheposition = glGetUniformLocation(obj->prog, "lampetorcheposition"); CHECK_GL_ERROR();
-    // if (loc_lampetorcheposition == -1) std::cerr << "Pas de variable uniforme : lampetorcheposition" << std::endl;
-    // glUniform3f(loc_lampetorcheposition,lampetorcheposition.x,lampetorcheposition.y,lampetorcheposition.z);    CHECK_GL_ERROR();
+    
+    GLint loc_torche = glGetUniformLocation(obj->prog, "torche"); CHECK_GL_ERROR();
+    if (loc_torche== -1) std::cerr << "Pas de variable uniforme : torche" << std::endl;
+    glUniform1i(loc_torche, torche);    CHECK_GL_ERROR();
 
-    // GLint loc_lampetorchedirection = glGetUniformLocation(obj->prog, "lampetorchedirection"); CHECK_GL_ERROR();
-    // if (loc_lampetorchedirection == -1) std::cerr << "Pas de variable uniforme : lampetorchedirection" << std::endl;
-    // glUniform3f(loc_lampetorchedirection,lampetorchedirection.x,lampetorchedirection.y,lampetorchedirection.z);    CHECK_GL_ERROR();
+    GLint loc_lumiereR = glGetUniformLocation(obj->prog, "lumiereR"); CHECK_GL_ERROR();
+    if (loc_lumiereR== -1) std::cerr << "Pas de variable uniforme : lumiereR" << std::endl;
+    glUniform1i(loc_lumiereR, lumiereR);    CHECK_GL_ERROR();
+
+    GLint loc_lumiereB = glGetUniformLocation(obj->prog, "lumiereB"); CHECK_GL_ERROR();
+    if (loc_lumiereB== -1) std::cerr << "Pas de variable uniforme : lumiereB" << std::endl;
+    glUniform1i(loc_lumiereB, lumiereB);    CHECK_GL_ERROR();
+
+    GLint loc_lumiereV = glGetUniformLocation(obj->prog, "lumiereV"); CHECK_GL_ERROR();
+    if (loc_lumiereV== -1) std::cerr << "Pas de variable uniforme : lumiereV" << std::endl;
+    glUniform1i(loc_lumiereV, lumiereV);    CHECK_GL_ERROR();
+
 
     GLint loc_rotation_view = glGetUniformLocation(obj->prog, "rotation_view"); CHECK_GL_ERROR();
     if (loc_rotation_view == -1) std::cerr << "Pas de variable uniforme : rotation_view" << std::endl;
@@ -513,7 +543,8 @@ void init_model_1()
   obj[0].visible = true;
   obj[0].prog = shader_program_id;
 
-  obj[0].tr.translation = vec3(-2.0, 0.0, -5.0);
+  obj[0].tr.translation = vec3(0.0, 0.0, -5.0);
+  
 }
 
 void init_model_2()
@@ -588,10 +619,20 @@ void init_model_3()
   obj[2].vao = upload_mesh_to_gpu(m);
 
   obj[2].nb_triangle = m.connectivity.size();
-  obj[2].texture_id = glhelper::load_texture("data/white.tga");
+  obj[2].texture_id = glhelper::load_texture("data/T_arms_A.png");
 
   obj[2].visible = true;
   obj[2].prog = shader_program_id;
 
-  obj[2].tr.translation = vec3(2.0, 0.0, -10.0);
+  obj[2].tr.translation = vec3(1.0, 1.0, -10.0);
+  
+  obj[3].vao = obj[2].vao;
+
+  obj[3].nb_triangle = obj[2].nb_triangle;
+  obj[3].texture_id = obj[2].texture_id;
+
+  obj[3].visible = obj[2].texture_id;
+  obj[3].prog = obj[2].texture_id;
+
+  obj[3].tr.translation = vec3(1.0, 1.0, -11.0);
 }
