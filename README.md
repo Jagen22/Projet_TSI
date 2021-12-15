@@ -20,7 +20,7 @@ ou bien en utilisant directement `script.sh`
 
 ## TODO : 
 
-- [ ] Augmentation de vitesse de caméra ?
+- [x] Augmentation de vitesse de caméra ?
 - [ ] Limiter le déplacement vertical de la caméra en haut et en bas
 - [x] Déplacement fluide
 - [x] Déplacement avec plusieurs touches en même temps
@@ -32,7 +32,7 @@ ou bien en utilisant directement `script.sh`
 - [ ] Creation décor
 - [ ] Detection obstacle
 - [ ] Interface objet ?
-- [ ] Lumière directionnelle (lampe torche)
+- [x] Lumière directionnelle (lampe torche)
 
 
 ## Liens utiles / Sources :
