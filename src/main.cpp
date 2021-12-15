@@ -6,7 +6,7 @@
  \*****************************************************************************/
 
 #include "declaration.h"
-
+#include <bits/stdc++.h>
 vec2 PosAnc = vec2(300,300);
 //identifiant des shaders
 GLuint shader_program_id;
@@ -36,13 +36,14 @@ int lumiereB = 0;
 
 float largMaison = 30.0;
 float hautMaison = 20.0;
+int compteur = 0;
 
 static void init()
 {
   shader_program_id = glhelper::create_program_from_file("shaders/shader.vert", "shaders/shader.frag"); CHECK_GL_ERROR();
 
   cam.projection = matrice_projection(60.0f*M_PI/180.0f,1.0f,0.01f,100.0f);
-  cam.tr.translation = vec3(1.0f, 2.0f, 0.0f);
+  cam.tr.translation = vec3(0.0f, 2.0f, 0.0f);
   // cam.tr.translation = vec3(0.0f, 20.0f, 0.0f);
   // cam.tr.rotation_center = vec3(0.0f, 20.0f, 0.0f);
   // cam.tr.rotation_euler = vec3(M_PI/2., 0.0f, 0.0f);
@@ -99,6 +100,12 @@ static void display_callback()
   }
   cam.tr.rotation_center = cam.tr.translation;
   //glTranslated(cos(cam.tr.rotation_euler.y) , sin(cam.tr.rotation_euler.z) ,0);
+  
+  obj[0].tr.translation = cam.tr.translation;
+  obj[0].tr.rotation_euler.y = -cam.tr.rotation_euler.y;
+  
+
+  std::cout << obj[0].tr.rotation_euler << std::endl;
 
 
   //Affichage des differents objets
@@ -151,6 +158,7 @@ static void keyboard_callback(unsigned char key, int, int)
     case 'b':
       lumiereB = 1-lumiereB;
       break;
+
     // case 'k':
     //   angle_y_model_1 += d_angle;
     //   break;
@@ -236,6 +244,8 @@ static void timer_callback(int)
     cam.tr.rotation_euler.x -= angle;
     //std::cout << cam.tr.rotation_euler.x  << std::endl;
   }
+  
+
   // mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
   // mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
   // mat4 rotation = rotation_x*rotation_y;
@@ -244,18 +254,16 @@ static void timer_callback(int)
   //Gestion du saut du personnage
   if (SpaceBar){
     //std::cout << obj[0].tr.translation.y << std::endl;
-    while(obj[0].tr.translation.y <= 2 && Jump == false){
+    while(cam.tr.translation.y <= 4 && Jump == false){
       cam.tr.translation.y += 0.1;
-      obj[0].tr.translation.y += 0.1;
-      if (obj[0].tr.translation.y >= 2) {
+      if (cam.tr.translation.y >= 4) {
         Jump = true;
       }
       break;
     }
     if (Jump) {
       cam.tr.translation.y-=0.1;
-      obj[0].tr.translation.y -= 0.1;
-      if (obj[0].tr.translation.y <= 0) {
+      if (cam.tr.translation.y <= 2) {
         Jump = false;
         SpaceBar = false;
       }
@@ -527,10 +535,10 @@ GLuint upload_mesh_to_gpu(const mesh& m)
 void init_model_dino()
 {
   // Chargement d'un maillage a partir d'un fichier
-  mesh m = load_obj_file("data/stegosaurus.obj");
+  mesh m = load_obj_file("data/Arms.obj");
 
   // Affecte une transformation sur les sommets du maillage
-  float s = 0.2f;
+  float s = 0.55f;
   mat4 transform = mat4(   s, 0.0f, 0.0f, 0.0f,
       0.0f,    s, 0.0f, 0.0f,
       0.0f, 0.0f,   s , 0.0f,
@@ -538,7 +546,7 @@ void init_model_dino()
   apply_deformation(&m,transform);
 
   // Centre la rotation du modele 1 autour de son centre de gravite approximatif
-  obj[0].tr.rotation_center = vec3(0.0f,0.0f,0.0f);
+  obj[0].tr.rotation_euler = vec3(0.0f,0.0f,0.0f);
 
   update_normals(&m);
   fill_color(&m,vec3(1.0f,1.0f,1.0f));
@@ -546,11 +554,14 @@ void init_model_dino()
   obj[0].vao = upload_mesh_to_gpu(m);
 
   obj[0].nb_triangle = m.connectivity.size();
-  obj[0].texture_id = glhelper::load_texture("data/stegosaurus.tga");
+  obj[0].texture_id = glhelper::load_texture("data/T_arms_A.tga");
   obj[0].visible = true;
   obj[0].prog = shader_program_id;
 
-  obj[0].tr.translation = vec3(0.0, 0.0, -5.0);
+
+  obj[0].tr.translation = cam.tr.translation;
+  obj[0].tr.rotation_euler = -1*cam.tr.rotation_euler;
+
   
 }
 
