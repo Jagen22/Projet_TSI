@@ -19,7 +19,7 @@ float dL=0.1f;
 
 camera cam;
 
-const int nb_obj = 4;
+const int nb_obj = 9;
 objet3d obj[nb_obj];
 
 const int nb_text = 2;
@@ -29,11 +29,13 @@ float angle_x_model_1 = 0.0f;
 float angle_y_model_1 = 0.0f;
 float angle_view = 0.0f;
 
-int torche = 0;
+int torche = 1;
 int lumiereR = 0;
 int lumiereV = 0;
 int lumiereB = 0;
 
+float largMaison = 30.0;
+float hautMaison = 20.0;
 
 static void init()
 {
@@ -44,9 +46,14 @@ static void init()
   // cam.tr.translation = vec3(0.0f, 20.0f, 0.0f);
   // cam.tr.rotation_center = vec3(0.0f, 20.0f, 0.0f);
   // cam.tr.rotation_euler = vec3(M_PI/2., 0.0f, 0.0f);
-  init_model_1();
-  init_model_2();
+  init_model_dino();
+  init_model_ground();
   init_model_3();
+  init_model_wall1();
+  init_model_wall2();
+  init_model_wall3();
+  init_model_wall4();
+  init_model_ceiling();
 
   // gui_program_id = glhelper::create_program_from_file("shaders/gui.vert", "shaders/gui.frag"); CHECK_GL_ERROR();
 
@@ -517,7 +524,7 @@ GLuint upload_mesh_to_gpu(const mesh& m)
   return vao;
 }
 
-void init_model_1()
+void init_model_dino()
 {
   // Chargement d'un maillage a partir d'un fichier
   mesh m = load_obj_file("data/stegosaurus.obj");
@@ -547,16 +554,16 @@ void init_model_1()
   
 }
 
-void init_model_2()
+void init_model_ground()
 {
 
   mesh m;
 
   //coordonnees geometriques des sommets
-  vec3 p0=vec3(-25.0f,0.0f,-25.0f);
-  vec3 p1=vec3( 25.0f,0.0f,-25.0f);
-  vec3 p2=vec3( 25.0f,0.0f, 25.0f);
-  vec3 p3=vec3(-25.0f,0.0f, 25.0f);
+  vec3 p0=vec3(-largMaison/2,0.0f,-largMaison/2); //D
+  vec3 p1=vec3( largMaison/2,0.0f,-largMaison/2); //C
+  vec3 p2=vec3( largMaison/2,0.0f, largMaison/2); //B
+  vec3 p3=vec3(-largMaison/2,0.0f, largMaison/2); //A
 
   //normales pour chaque sommet
   vec3 n0=vec3(0.0f,1.0f,0.0f);
@@ -591,7 +598,7 @@ void init_model_2()
   obj[1].nb_triangle = 2;
   obj[1].vao = upload_mesh_to_gpu(m);
 
-  obj[1].texture_id = glhelper::load_texture("data/grass.tga");
+  obj[1].texture_id = glhelper::load_texture("data/ground1.tga");
 
   obj[1].visible = true;
   obj[1].prog = shader_program_id;
@@ -619,7 +626,7 @@ void init_model_3()
   obj[2].vao = upload_mesh_to_gpu(m);
 
   obj[2].nb_triangle = m.connectivity.size();
-  obj[2].texture_id = glhelper::load_texture("data/T_arms_A.png");
+  obj[2].texture_id = glhelper::load_texture("data/stegosaurus.tga");
 
   obj[2].visible = true;
   obj[2].prog = shader_program_id;
@@ -635,4 +642,255 @@ void init_model_3()
   obj[3].prog = obj[2].texture_id;
 
   obj[3].tr.translation = vec3(1.0, 1.0, -11.0);
+}
+
+void init_model_wall1()
+{
+
+  mesh m;
+
+  //coordonnees geometriques des sommets
+  vec3 p0=vec3( largMaison/2,hautMaison, -largMaison/2); //G
+  vec3 p1=vec3( -largMaison/2,hautMaison,-largMaison/2); //H
+  vec3 p2=vec3(-largMaison/2, 0.0,-largMaison/2); //D
+  vec3 p3=vec3(largMaison/2, 0.0, -largMaison/2); //C
+
+  //normales pour chaque sommet
+  vec3 n0=vec3(0.0f,0.0f,1.0f);
+  vec3 n1=n0;
+  vec3 n2=n0;
+  vec3 n3=n0;
+
+  //couleur pour chaque sommet
+  vec3 c0=vec3(1.0f,1.0f,1.0f);
+  vec3 c1=c0;
+  vec3 c2=c0;
+  vec3 c3=c0;
+
+  //texture du sommet
+  vec2 t0=vec2(0.0f,0.0f);
+  vec2 t1=vec2(1.0f,0.0f);
+  vec2 t2=vec2(1.0f,1.0f);
+  vec2 t3=vec2(0.0f,1.0f);
+
+  vertex_opengl v0=vertex_opengl(p0,n0,c0,t0);
+  vertex_opengl v1=vertex_opengl(p1,n1,c1,t1);
+  vertex_opengl v2=vertex_opengl(p2,n2,c2,t2);
+  vertex_opengl v3=vertex_opengl(p3,n3,c3,t3);
+
+  m.vertex = {v0, v1, v2, v3};
+
+  //indice des triangles
+  triangle_index tri0=triangle_index(0,1,2);
+  triangle_index tri1=triangle_index(0,2,3);  
+  m.connectivity = {tri0, tri1};
+
+  obj[4].nb_triangle = 2;
+  obj[4].vao = upload_mesh_to_gpu(m);
+
+  obj[4].texture_id = glhelper::load_texture("data/WoodHor2.tga");
+
+  obj[4].visible = true;
+  obj[4].prog = shader_program_id;
+}
+
+void init_model_wall2()
+{
+
+  mesh m;
+
+  //coordonnees geometriques des sommets
+  vec3 p0=vec3(-largMaison/2,hautMaison, largMaison/2); //E
+  vec3 p1=vec3( largMaison/2,hautMaison, largMaison/2); //F
+  vec3 p2=vec3( largMaison/2,0.0f, largMaison/2); //B
+  vec3 p3=vec3(-largMaison/2,0.0f, largMaison/2); //A
+
+  //normales pour chaque sommet
+  vec3 n0=vec3(0.0f,0.0f,1.0f);
+  vec3 n1=n0;
+  vec3 n2=n0;
+  vec3 n3=n0;
+
+  //couleur pour chaque sommet
+  vec3 c0=vec3(1.0f,1.0f,1.0f);
+  vec3 c1=c0;
+  vec3 c2=c0;
+  vec3 c3=c0;
+
+  //texture du sommet
+  vec2 t0=vec2(0.0f,0.0f);
+  vec2 t1=vec2(1.0f,0.0f);
+  vec2 t2=vec2(1.0f,1.0f);
+  vec2 t3=vec2(0.0f,1.0f);
+
+  vertex_opengl v0=vertex_opengl(p0,n0,c0,t0);
+  vertex_opengl v1=vertex_opengl(p1,n1,c1,t1);
+  vertex_opengl v2=vertex_opengl(p2,n2,c2,t2);
+  vertex_opengl v3=vertex_opengl(p3,n3,c3,t3);
+
+  m.vertex = {v0, v1, v2, v3};
+
+  //indice des triangles
+  triangle_index tri0=triangle_index(0,1,2);
+  triangle_index tri1=triangle_index(0,2,3);  
+  m.connectivity = {tri0, tri1};
+
+  obj[5].nb_triangle = 2;
+  obj[5].vao = upload_mesh_to_gpu(m);
+
+  obj[5].texture_id = glhelper::load_texture("data/WoodHor2.tga");
+
+  obj[5].visible = true;
+  obj[5].prog = shader_program_id;
+}
+
+void init_model_wall3()
+{
+
+  mesh m;
+
+  //coordonnees geometriques des sommets
+  vec3 p0=vec3( largMaison/2,hautMaison,-largMaison/2); //G
+  vec3 p1=vec3( largMaison/2,hautMaison, largMaison/2); //F
+  vec3 p2=vec3( largMaison/2,0.0f, largMaison/2); //B
+  vec3 p3=vec3( largMaison/2,0.0f,-largMaison/2); //C
+
+  //normales pour chaque sommet
+  vec3 n0=vec3(1.0f,0.0f,0.0f);
+  vec3 n1=n0;
+  vec3 n2=n0;
+  vec3 n3=n0;
+
+  //couleur pour chaque sommet
+  vec3 c0=vec3(1.0f,1.0f,1.0f);
+  vec3 c1=c0;
+  vec3 c2=c0;
+  vec3 c3=c0;
+
+  //texture du sommet
+  vec2 t0=vec2(0.0f,0.0f);
+  vec2 t1=vec2(1.0f,0.0f);
+  vec2 t2=vec2(1.0f,1.0f);
+  vec2 t3=vec2(0.0f,1.0f);
+
+  vertex_opengl v0=vertex_opengl(p0,n0,c0,t0);
+  vertex_opengl v1=vertex_opengl(p1,n1,c1,t1);
+  vertex_opengl v2=vertex_opengl(p2,n2,c2,t2);
+  vertex_opengl v3=vertex_opengl(p3,n3,c3,t3);
+
+  m.vertex = {v0, v1, v2, v3};
+
+  //indice des triangles
+  triangle_index tri0=triangle_index(0,1,2);
+  triangle_index tri1=triangle_index(0,2,3);  
+  m.connectivity = {tri0, tri1};
+
+  obj[6].nb_triangle = 2;
+  obj[6].vao = upload_mesh_to_gpu(m);
+
+  obj[6].texture_id = glhelper::load_texture("data/WoodHor2.tga");
+
+  obj[6].visible = true;
+  obj[6].prog = shader_program_id;
+}
+
+void init_model_wall4()
+{
+
+  mesh m;
+
+  //coordonnees geometriques des sommets
+  vec3 p0=vec3(-largMaison/2,hautMaison, largMaison/2); //E
+  vec3 p1=vec3(-largMaison/2,hautMaison,-largMaison/2); //H
+  vec3 p2=vec3(-largMaison/2,0.0f,-largMaison/2); //D
+  vec3 p3=vec3(-largMaison/2,0.0f, largMaison/2); //A
+
+  //normales pour chaque sommet
+  vec3 n0=vec3(1.0f,0.0f,0.0f);
+  vec3 n1=n0;
+  vec3 n2=n0;
+  vec3 n3=n0;
+
+  //couleur pour chaque sommet
+  vec3 c0=vec3(1.0f,1.0f,1.0f);
+  vec3 c1=c0;
+  vec3 c2=c0;
+  vec3 c3=c0;
+
+  //texture du sommet
+  vec2 t0=vec2(0.0f,0.0f);
+  vec2 t1=vec2(1.0f,0.0f);
+  vec2 t2=vec2(1.0f,1.0f);
+  vec2 t3=vec2(0.0f,1.0f);
+
+  vertex_opengl v0=vertex_opengl(p0,n0,c0,t0);
+  vertex_opengl v1=vertex_opengl(p1,n1,c1,t1);
+  vertex_opengl v2=vertex_opengl(p2,n2,c2,t2);
+  vertex_opengl v3=vertex_opengl(p3,n3,c3,t3);
+
+  m.vertex = {v0, v1, v2, v3};
+
+  //indice des triangles
+  triangle_index tri0=triangle_index(0,1,2);
+  triangle_index tri1=triangle_index(0,2,3);  
+  m.connectivity = {tri0, tri1};
+
+  obj[7].nb_triangle = 2;
+  obj[7].vao = upload_mesh_to_gpu(m);
+
+  obj[7].texture_id = glhelper::load_texture("data/WoodHor2.tga");
+
+  obj[7].visible = true;
+  obj[7].prog = shader_program_id;
+}
+
+void init_model_ceiling()
+{
+
+  mesh m;
+
+  //coordonnees geometriques des sommets
+  vec3 p0=vec3(-largMaison/2,hautMaison,-largMaison/2); //H
+  vec3 p1=vec3( largMaison/2,hautMaison,-largMaison/2); //G
+  vec3 p2=vec3( largMaison/2,hautMaison, largMaison/2); //F
+  vec3 p3=vec3(-largMaison/2,hautMaison, largMaison/2); //E
+  
+
+  //normales pour chaque sommet
+  vec3 n0=vec3(0.0f,1.0f,0.0f);
+  vec3 n1=n0;
+  vec3 n2=n0;
+  vec3 n3=n0;
+
+  //couleur pour chaque sommet
+  vec3 c0=vec3(1.0f,1.0f,1.0f);
+  vec3 c1=c0;
+  vec3 c2=c0;
+  vec3 c3=c0;
+
+  //texture du sommet
+  vec2 t0=vec2(0.0f,0.0f);
+  vec2 t1=vec2(1.0f,0.0f);
+  vec2 t2=vec2(1.0f,1.0f);
+  vec2 t3=vec2(0.0f,1.0f);
+
+  vertex_opengl v0=vertex_opengl(p0,n0,c0,t0);
+  vertex_opengl v1=vertex_opengl(p1,n1,c1,t1);
+  vertex_opengl v2=vertex_opengl(p2,n2,c2,t2);
+  vertex_opengl v3=vertex_opengl(p3,n3,c3,t3);
+
+  m.vertex = {v0, v1, v2, v3};
+
+  //indice des triangles
+  triangle_index tri0=triangle_index(0,1,2);
+  triangle_index tri1=triangle_index(0,2,3);  
+  m.connectivity = {tri0, tri1};
+
+  obj[8].nb_triangle = 2;
+  obj[8].vao = upload_mesh_to_gpu(m);
+
+  obj[8].texture_id = glhelper::load_texture("data/ceiling.tga");
+
+  obj[8].visible = true;
+  obj[8].prog = shader_program_id;
 }

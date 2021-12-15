@@ -20,8 +20,8 @@ ou bien en utilisant directement `script.sh`
 
 ## TODO : 
 
-- [ ] Augmentation de vitesse de caméra ?
-- [ ] Limiter le déplacement vertical de la caméra en haut et en bas
+- [x] Augmentation de vitesse de caméra ?
+- [x] Limiter le déplacement vertical de la caméra en haut et en bas
 - [x] Déplacement fluide
 - [x] Déplacement avec plusieurs touches en même temps
 - [x] Déplacement ZQSD & flèches directionnelles ?
@@ -29,10 +29,11 @@ ou bien en utilisant directement `script.sh`
 - [ ] Implémenter les mains.obj
 - [ ] Associer déplacement objet et caméra
 - [ ] Interaction avec objet
-- [ ] Creation décor
+- [x] Creation décor
 - [ ] Detection obstacle
 - [ ] Interface objet ?
-- [ ] Lumière directionnelle (lampe torche)
+- [x] Lumière directionnelle (lampe torche)
+- [x] Lumière ambiante RVB
 
 
 ## Liens utiles / Sources :
