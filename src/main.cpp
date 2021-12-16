@@ -6,7 +6,7 @@
  \*****************************************************************************/
 
 #include "declaration.h"
-#include <bits/stdc++.h>
+
 vec2 PosAnc = vec2(300,300);
 //identifiant des shaders
 GLuint shader_program_id;
@@ -19,7 +19,7 @@ float dL=0.1f;
 
 camera cam;
 
-const int nb_obj = 9;
+const int nb_obj = 12;
 objet3d obj[nb_obj];
 
 const int nb_text = 2;
@@ -36,14 +36,14 @@ int lumiereB = 0;
 
 float largMaison = 30.0;
 float hautMaison = 20.0;
-int compteur = 0;
+
 
 static void init()
 {
   shader_program_id = glhelper::create_program_from_file("shaders/shader.vert", "shaders/shader.frag"); CHECK_GL_ERROR();
 
   cam.projection = matrice_projection(60.0f*M_PI/180.0f,1.0f,0.01f,100.0f);
-  cam.tr.translation = vec3(0.0f, 2.0f, 0.0f);
+  cam.tr.translation = vec3(1.0f, 2.0f, 0.0f);
   // cam.tr.translation = vec3(0.0f, 20.0f, 0.0f);
   // cam.tr.rotation_center = vec3(0.0f, 20.0f, 0.0f);
   // cam.tr.rotation_euler = vec3(M_PI/2., 0.0f, 0.0f);
@@ -55,6 +55,9 @@ static void init()
   init_model_wall3();
   init_model_wall4();
   init_model_ceiling();
+  init_model_switch();
+
+
 
   // gui_program_id = glhelper::create_program_from_file("shaders/gui.vert", "shaders/gui.frag"); CHECK_GL_ERROR();
 
@@ -79,39 +82,46 @@ static void display_callback()
   mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
   mat4 rotation = rotation_x*rotation_y;
 
+  //Si une touche de deplacement est activee, on teste si la future position depasse les limites de la map
+  //Dans le cas ou le deplacement est valide, on deplace la camera de dL dans la direction d'orientation de la camera
+  //On resalise ensuite un test : dans le cas où on ne saute pas on force la camera en y=2
   if (Move_Up){
-    cam.tr.translation += rotation*vec3(0,0,dL);
-    if (!SpaceBar){cam.tr.translation.y = 2;}
-    //obj[0].tr.translation.x += dL;
+    if (abs(cam.tr.translation.x + (rotation*vec3(0,0,dL)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z + (rotation*vec3(0,0,dL)).z) < largMaison/2 - 1)){
+      cam.tr.translation += rotation*vec3(0,0,dL);
+      if (!SpaceBar){cam.tr.translation.y = 2;}
+    }
+
   }
   if(Move_Down){
-    cam.tr.translation -= rotation*vec3(0,0,dL);
-    if (!SpaceBar){cam.tr.translation.y = 2;}
-    
-    //obj[0].tr.translation -= obj[0].tr.rotation_euler.z*vec3(0,0,dL);
+    if (abs(cam.tr.translation.x - (rotation*vec3(0,0,dL)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z - (rotation*vec3(0,0,dL)).z) < largMaison/2 - 1)){
+      cam.tr.translation -= rotation*vec3(0,0,dL);
+      if (!SpaceBar){cam.tr.translation.y = 2;}
+    }
   }
+
   if(Move_Left){
-    cam.tr.translation -= rotation*vec3(dL,0,0);
-    if (!SpaceBar){cam.tr.translation.y = 2;}
+    if (abs(cam.tr.translation.x - (rotation*vec3(dL,0,0)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z - (rotation*vec3(dL,0,0)).z) < largMaison/2 - 1)){
+      cam.tr.translation -= rotation*vec3(dL,0,0);
+      if (!SpaceBar){cam.tr.translation.y = 2;}
+    }
   }
+
   if(Move_Right){
-    cam.tr.translation += rotation*vec3(dL,0,0);
-    if (!SpaceBar){cam.tr.translation.y = 2;}
+    if (abs(cam.tr.translation.x + (rotation*vec3(dL,0,0)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z + (rotation*vec3(dL,0,0)).z) < largMaison/2 - 1)){
+      cam.tr.translation += rotation*vec3(dL,0,0);
+      if (!SpaceBar){cam.tr.translation.y = 2;}
+    }
   }
+
   cam.tr.rotation_center = cam.tr.translation;
   //glTranslated(cos(cam.tr.rotation_euler.y) , sin(cam.tr.rotation_euler.z) ,0);
-  
-  obj[0].tr.translation = cam.tr.translation;
-  obj[0].tr.rotation_euler.y = -cam.tr.rotation_euler.y;
-  
-
-  std::cout << obj[0].tr.rotation_euler << std::endl;
 
 
   //Affichage des differents objets
-  for(int i = 0; i < nb_obj; ++i)
+  for(int i = 0; i < nb_obj; ++i){
     draw_obj3d(obj + i, cam);
-  
+  }
+
   // for(int i = 0; i < nb_text; ++i)
   //   draw_text(text_to_draw + i);
 
@@ -130,7 +140,9 @@ static void keyboard_callback(unsigned char key, int, int)
     case 27:
       exit(0);
       break;
-
+    case 'e':
+      Action = true;
+      break;
     case 'z':
       Move_Up = true;
       break;
@@ -158,13 +170,6 @@ static void keyboard_callback(unsigned char key, int, int)
     case 'b':
       lumiereB = 1-lumiereB;
       break;
-
-    // case 'k':
-    //   angle_y_model_1 += d_angle;
-    //   break;
-    // case 'm':
-    //   angle_y_model_1 -= d_angle;
-    //   break;
   }
 }
 
@@ -224,6 +229,16 @@ static void special_callback_stop(int key, int,int)
   }
 }
 
+static void mouse_clic(int button, int state, int x, int y){
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
+      std::cout << "clic"<< std::endl;
+      std::cout << x << std::endl;
+      std::cout << y << std::endl;
+
+      
+  }
+}
+
 static void timer_callback(int)
 { 
   glutTimerFunc(25, timer_callback, 0);
@@ -232,7 +247,6 @@ static void timer_callback(int)
   float angle = 0.02;
   if (Cursor_Right){
     cam.tr.rotation_euler.y += angle;
-    
   }
   if (Cursor_Left){
     cam.tr.rotation_euler.y -= angle;
@@ -244,8 +258,6 @@ static void timer_callback(int)
     cam.tr.rotation_euler.x -= angle;
     //std::cout << cam.tr.rotation_euler.x  << std::endl;
   }
-  
-
   // mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
   // mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
   // mat4 rotation = rotation_x*rotation_y;
@@ -254,16 +266,18 @@ static void timer_callback(int)
   //Gestion du saut du personnage
   if (SpaceBar){
     //std::cout << obj[0].tr.translation.y << std::endl;
-    while(cam.tr.translation.y <= 4 && Jump == false){
+    while(obj[0].tr.translation.y <= 2 && Jump == false){
       cam.tr.translation.y += 0.1;
-      if (cam.tr.translation.y >= 4) {
+      obj[0].tr.translation.y += 0.1;
+      if (obj[0].tr.translation.y >= 2) {
         Jump = true;
       }
       break;
     }
     if (Jump) {
       cam.tr.translation.y-=0.1;
-      if (cam.tr.translation.y <= 2) {
+      obj[0].tr.translation.y -= 0.1;
+      if (obj[0].tr.translation.y <= 0) {
         Jump = false;
         SpaceBar = false;
       }
@@ -293,50 +307,38 @@ static void timer_callback(int)
   glutPostRedisplay();
 }
 
-static void test(int xmous,int ymous){
+static void mouse_move(int xmous,int ymous){
   vec2 posACT = vec2(xmous,ymous);
-  int limminrectMousse = 15;
-  int limmaxrectMousse = 30;
+  int limminrectMouse = 15;
+  int limmaxrectMouse = 30;
   Cursor_Right = false;
   Cursor_Left = false;
   Cursor_Up = false;
   Cursor_Down = false;
-  if (posACT.x > longu/2+limminrectMousse){
-    if (posACT.x > Cursor_Upe/2+limmaxrectMousse){
-      glutWarpPointer(Cursor_Upe/2+limmaxrectMousse,posACT.y);
+  if (posACT.x > longu/2+limminrectMouse){
+    if (posACT.x > Cursor_Upe/2+limmaxrectMouse){
+      glutWarpPointer(Cursor_Upe/2+limmaxrectMouse,posACT.y);
     }
     Cursor_Right = true;
   }
-  if (posACT.x < longu/2-limminrectMousse){
-    if (posACT.x < Cursor_Upe/2-limmaxrectMousse){
-      glutWarpPointer(Cursor_Upe/2-limmaxrectMousse,posACT.y);
+  if (posACT.x < longu/2-limminrectMouse){
+    if (posACT.x < Cursor_Upe/2-limmaxrectMouse){
+      glutWarpPointer(Cursor_Upe/2-limmaxrectMouse,posACT.y);
     }
     Cursor_Left = true;
   }
-  if (posACT.y > Cursor_Upe/2+limminrectMousse){
-    if (posACT.y > Cursor_Upe/2+limmaxrectMousse){
-      glutWarpPointer(posACT.x,Cursor_Upe/2+limmaxrectMousse);
+  if (posACT.y > Cursor_Upe/2+limminrectMouse){
+    if (posACT.y > Cursor_Upe/2+limmaxrectMouse){
+      glutWarpPointer(posACT.x,Cursor_Upe/2+limmaxrectMouse);
     }
     Cursor_Up = true;
   }
-  if (posACT.y < Cursor_Upe/2-limminrectMousse){
-    if (posACT.y < Cursor_Upe/2-limmaxrectMousse){
-      glutWarpPointer(posACT.x,Cursor_Upe/2-limmaxrectMousse);
+  if (posACT.y < Cursor_Upe/2-limminrectMouse){
+    if (posACT.y < Cursor_Upe/2-limmaxrectMouse){
+      glutWarpPointer(posACT.x,Cursor_Upe/2-limmaxrectMouse);
     }
     Cursor_Down = true;
   }
-  // vec2 difPos = posACT-PosAnc;
-
-  // std::cout << cam.tr.rotation_euler << std::endl;
-  // std::cout << "*************************" << std::endl;
-
-  // cam.tr.rotation_euler.y = cam.tr.rotation_euler.y + difPos.x*0.001f;
-  // cam.tr.rotation_euler.x = cam.tr.rotation_euler.x + difPos.y*0.001f;
-  // if difPos.x*0.001f
-
-  // glutWarpPointer(longu/2,Cursor_Upe/2);
-
-
 }
 
 int main(int argc, char** argv)
@@ -355,7 +357,8 @@ int main(int argc, char** argv)
   glutKeyboardUpFunc(keyboard_callback_stop);
   glutSpecialFunc(special_callback);
   glutSpecialUpFunc(special_callback_stop);
-  glutPassiveMotionFunc(test);
+  glutPassiveMotionFunc(mouse_move);
+  glutMouseFunc(mouse_clic);
   glutTimerFunc(25, timer_callback, 0);
 
   
@@ -535,10 +538,10 @@ GLuint upload_mesh_to_gpu(const mesh& m)
 void init_model_dino()
 {
   // Chargement d'un maillage a partir d'un fichier
-  mesh m = load_obj_file("data/Arms.obj");
+  mesh m = load_obj_file("data/stegosaurus.obj");
 
   // Affecte une transformation sur les sommets du maillage
-  float s = 0.55f;
+  float s = 0.2f;
   mat4 transform = mat4(   s, 0.0f, 0.0f, 0.0f,
       0.0f,    s, 0.0f, 0.0f,
       0.0f, 0.0f,   s , 0.0f,
@@ -546,7 +549,7 @@ void init_model_dino()
   apply_deformation(&m,transform);
 
   // Centre la rotation du modele 1 autour de son centre de gravite approximatif
-  obj[0].tr.rotation_euler = vec3(0.0f,0.0f,0.0f);
+  obj[0].tr.rotation_center = vec3(0.0f,0.0f,0.0f);
 
   update_normals(&m);
   fill_color(&m,vec3(1.0f,1.0f,1.0f));
@@ -554,14 +557,11 @@ void init_model_dino()
   obj[0].vao = upload_mesh_to_gpu(m);
 
   obj[0].nb_triangle = m.connectivity.size();
-  obj[0].texture_id = glhelper::load_texture("data/T_arms_A.tga");
+  obj[0].texture_id = glhelper::load_texture("data/stegosaurus.tga");
   obj[0].visible = true;
   obj[0].prog = shader_program_id;
 
-
-  obj[0].tr.translation = cam.tr.translation;
-  obj[0].tr.rotation_euler = -1*cam.tr.rotation_euler;
-
+  obj[0].tr.translation = vec3(0.0, 0.0, -5.0);
   
 }
 
@@ -649,8 +649,8 @@ void init_model_3()
   obj[3].nb_triangle = obj[2].nb_triangle;
   obj[3].texture_id = obj[2].texture_id;
 
-  obj[3].visible = obj[2].texture_id;
-  obj[3].prog = obj[2].texture_id;
+  obj[3].visible = obj[2].visible;
+  obj[3].prog = obj[2].prog;
 
   obj[3].tr.translation = vec3(1.0, 1.0, -11.0);
 }
@@ -905,3 +905,45 @@ void init_model_ceiling()
   obj[8].visible = true;
   obj[8].prog = shader_program_id;
 }
+
+void init_model_switch()
+{
+  // Chargement d'un maillage a partir d'un fichier
+  mesh m = load_obj_file("data/Switch.obj");
+
+  // Affecte une transformation sur les sommets du maillage
+  float s = 0.1f;
+  mat4 transform = mat4(   s, 0.0f, 0.0f, 0.0f,
+      0.0f,    s, 0.0f, 0.0f,
+      0.0f, 0.0f,   s , 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f);
+  apply_deformation(&m,transform);
+
+  // Centre la rotation du modele 1 autour de son centre de gravite approximatif
+  obj[0].tr.rotation_center = vec3(0.0f,0.0f,0.0f);
+
+  update_normals(&m);
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
+
+  obj[9].vao = upload_mesh_to_gpu(m);
+  obj[9].nb_triangle = m.connectivity.size();
+  obj[9].texture_id = glhelper::load_texture("data/SwitchRed.jpg");
+  obj[9].visible = true;
+  obj[9].prog = shader_program_id;
+  obj[9].tr.translation = vec3(-2.0, 2.0, -largMaison/2);
+  
+  obj[10].vao = obj[9].vao;
+  obj[10].nb_triangle = obj[9].nb_triangle;
+  obj[10].texture_id = glhelper::load_texture("data/SwitchGreen.jpg");
+  obj[10].visible = obj[9].visible;
+  obj[10].prog = obj[9].prog;
+  obj[10].tr.translation = vec3(0.0, 2.0, -largMaison/2);
+
+  obj[11].vao = obj[9].vao;
+  obj[11].nb_triangle = obj[9].nb_triangle;
+  obj[11].texture_id = glhelper::load_texture("data/SwitchBlue.jpg");
+  obj[11].visible = obj[9].visible;
+  obj[11].prog = obj[9].prog;
+  obj[11].tr.translation = vec3(2.0, 2.0, -largMaison/2);
+}
+
