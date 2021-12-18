@@ -7,6 +7,12 @@
 
 #include "declaration.h"
 #include <bits/stdc++.h>
+//#include <irrKlang.h>
+
+// using namespace irrklang;
+// ISoundEngine *SoundEngine = createIrrKlangDevice();
+
+    
 vec2 PosAnc = vec2(300,300);
 //identifiant des shaders
 GLuint shader_program_id;
@@ -19,7 +25,7 @@ float dL=0.1f;
 
 camera cam;
 
-const int nb_obj = 9;
+const int nb_obj = 170;
 objet3d obj[nb_obj];
 
 const int nb_text = 2;
@@ -34,6 +40,9 @@ int lumiereR = 0;
 int lumiereV = 0;
 int lumiereB = 0;
 
+int i = 0;
+int k = 0;
+
 float largMaison = 30.0;
 float hautMaison = 20.0;
 int compteur = 0;
@@ -41,7 +50,6 @@ int compteur = 0;
 static void init()
 {
   shader_program_id = glhelper::create_program_from_file("shaders/shader.vert", "shaders/shader.frag"); CHECK_GL_ERROR();
-
   cam.projection = matrice_projection(60.0f*M_PI/180.0f,1.0f,0.01f,100.0f);
   cam.tr.translation = vec3(0.0f, 2.0f, 0.0f);
   // cam.tr.translation = vec3(0.0f, 20.0f, 0.0f);
@@ -102,10 +110,7 @@ static void display_callback()
   //glTranslated(cos(cam.tr.rotation_euler.y) , sin(cam.tr.rotation_euler.z) ,0);
   
   obj[0].tr.translation = cam.tr.translation;
-  obj[0].tr.rotation_euler.y = -cam.tr.rotation_euler.y;
-  
-
-  std::cout << obj[0].tr.rotation_euler << std::endl;
+  obj[0].tr.rotation_euler.y = -cam.tr.rotation_euler.y;  
 
 
   //Affichage des differents objets
@@ -242,14 +247,8 @@ static void timer_callback(int)
   }
   if (Cursor_Down && cam.tr.rotation_euler.x > -1){
     cam.tr.rotation_euler.x -= angle;
-    //std::cout << cam.tr.rotation_euler.x  << std::endl;
   }
   
-
-  // mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
-  // mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
-  // mat4 rotation = rotation_x*rotation_y;
-
  
   //Gestion du saut du personnage
   if (SpaceBar){
@@ -341,7 +340,7 @@ static void test(int xmous,int ymous){
 
 int main(int argc, char** argv)
 {
-  
+  //SoundEngine->play2D("data/Sabaton.mp3", true);
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | MACOSX_COMPATIBILITY);
   glutInitWindowSize(600, 600);
@@ -618,16 +617,14 @@ void init_model_ground()
 void init_model_3()
 {
   // Chargement d'un maillage a partir d'un fichier
-  mesh m = load_obj_file("data/stegosaurus.obj");
+  mesh m = load_obj_file("data/Gramophone/etagere.obj");
 
   // Affecte une transformation sur les sommets du maillage
-  float s = 0.1f;
+  float s = 0.25f;
   mat4 transform = mat4(   s, 0.0f, 0.0f, 0.0f,
       0.0f,    s, 0.0f, 0.50f,
       0.0f, 0.0f,   s , 0.0f,
       0.0f, 0.0f, 0.0f, 1.0f);
-  apply_deformation(&m,matrice_rotation(M_PI/2.0f,1.0f,0.0f,0.0f));
-  apply_deformation(&m,matrice_rotation(M_PI,0.0f,1.0f,0.0f));
   apply_deformation(&m,transform);
 
   update_normals(&m);
@@ -637,12 +634,12 @@ void init_model_3()
   obj[2].vao = upload_mesh_to_gpu(m);
 
   obj[2].nb_triangle = m.connectivity.size();
-  obj[2].texture_id = glhelper::load_texture("data/stegosaurus.tga");
+  obj[2].texture_id = glhelper::load_texture("data/gris.tga");
 
   obj[2].visible = true;
   obj[2].prog = shader_program_id;
 
-  obj[2].tr.translation = vec3(1.0, 1.0, -10.0);
+  obj[2].tr.translation = vec3(-2.5, -0.5, -14.25);
   
   obj[3].vao = obj[2].vao;
 
@@ -652,7 +649,26 @@ void init_model_3()
   obj[3].visible = obj[2].texture_id;
   obj[3].prog = obj[2].texture_id;
 
-  obj[3].tr.translation = vec3(1.0, 1.0, -11.0);
+  obj[3].tr.translation = vec3(2.5, -0.5, -14.25);
+
+
+  m = load_obj_file("data/Gramophone/Disk.obj");
+  obj[9].vao = upload_mesh_to_gpu(m);
+  obj[9].nb_triangle = m.connectivity.size();
+  obj[9].visible = true;
+  obj[9].prog = shader_program_id;
+  obj[9].tr.translation = vec3(-4.9, 1.825, -14.25);
+  for (k = 0;k<4;k++){
+    for (i = 0; i<41;i++){
+      obj[(40*k)+i+10].vao = obj[9].vao;
+      obj[(40*k)+i+10].nb_triangle = obj[9].nb_triangle ;
+      obj[(40*k)+i+10].visible = true;
+      obj[(40*k)+i+10].prog = shader_program_id;
+      obj[(40*k)+i+10].tr.translation = obj[9].tr.translation+vec3(0.25*i,(k)*1.2,0);
+    }
+
+  }
+
 }
 
 void init_model_wall1()

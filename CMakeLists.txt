@@ -77,7 +77,7 @@ elseif (UNIX)
 endif ()
 
 add_executable(projet ${source_files} ${header_files} ${shader_files})
-target_link_libraries(projet ${USED_GLEW_LIBRARY} ${USED_GLUT_LIBRARY} ${OPENGL_LIBRARIES} ${LINK_FLAGS} tools)
+target_link_libraries(projet ${USED_GLEW_LIBRARY} ${USED_GLUT_LIBRARY} ${OPENGL_LIBRARIES} ${LINK_FLAGS} tools )
 set_target_properties(projet PROPERTIES  VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT projet)
