@@ -89,5 +89,8 @@ void init_model_wall1();
 void init_model_wall2();
 void init_model_wall3();
 void init_model_wall4();
+void init_model_lumiere();
+void fonction_Intersection();
+
 
 void draw_obj3d(const objet3d* const obj, camera cam);

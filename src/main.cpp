@@ -22,10 +22,9 @@ int longu = 600;
 int Cursor_Upe = 600;
 
 float dL=0.1f;
-
 camera cam;
 
-const int nb_obj = 170;
+const int nb_obj = 172;
 objet3d obj[nb_obj];
 
 const int nb_text = 2;
@@ -63,6 +62,7 @@ static void init()
   init_model_wall3();
   init_model_wall4();
   init_model_ceiling();
+  init_model_lumiere();
 
   // gui_program_id = glhelper::create_program_from_file("shaders/gui.vert", "shaders/gui.frag"); CHECK_GL_ERROR();
 
@@ -109,7 +109,7 @@ static void display_callback()
   cam.tr.rotation_center = cam.tr.translation;
   //glTranslated(cos(cam.tr.rotation_euler.y) , sin(cam.tr.rotation_euler.z) ,0);
   
-  obj[0].tr.translation = cam.tr.translation;
+  obj[0].tr.translation = cam.tr.translation+vec3(0.0,0.0,5.0);
   obj[0].tr.rotation_euler.y = -cam.tr.rotation_euler.y;  
 
 
@@ -119,6 +119,7 @@ static void display_callback()
   
   // for(int i = 0; i < nb_text; ++i)
   //   draw_text(text_to_draw + i);
+  fonction_Intersection();
 
   glutSwapBuffers();
 }
@@ -534,7 +535,7 @@ GLuint upload_mesh_to_gpu(const mesh& m)
 void init_model_dino()
 {
   // Chargement d'un maillage a partir d'un fichier
-  mesh m = load_obj_file("data/Arms.obj");
+  mesh m = load_obj_file("data/stegosaurus.obj");
 
   // Affecte une transformation sur les sommets du maillage
   float s = 0.55f;
@@ -564,6 +565,25 @@ void init_model_dino()
   
 }
 
+void  init_model_lumiere(){
+  mesh m = load_obj_file("data/lumiere.obj");
+  float s = 0.05f;
+  mat4 transform = mat4(   s, 0.0f, 0.0f, 0.0f,
+      0.0f,    s, 0.0f, 0.0f,
+      0.0f, 0.0f,   s , 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f);
+  apply_deformation(&m,transform);
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
+
+  obj[171].vao = upload_mesh_to_gpu(m);
+
+  obj[171].nb_triangle = m.connectivity.size();
+  obj[171].texture_id = glhelper::load_texture("data/AM134_14_wood_1.tga");
+  obj[171].visible = true;
+  obj[171].prog = shader_program_id;
+  obj[171].tr.translation = vec3(0,5,-1);
+
+}
 void init_model_ground()
 {
 
@@ -639,7 +659,7 @@ void init_model_3()
   obj[2].visible = true;
   obj[2].prog = shader_program_id;
 
-  obj[2].tr.translation = vec3(-2.5, -0.5, -14.25);
+  obj[2].tr.translation = vec3(-5, -0.5, -14.25);
   
   obj[3].vao = obj[2].vao;
 
@@ -653,6 +673,7 @@ void init_model_3()
 
 
   m = load_obj_file("data/Gramophone/Disk.obj");
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
   obj[9].vao = upload_mesh_to_gpu(m);
   obj[9].nb_triangle = m.connectivity.size();
   obj[9].visible = true;
@@ -920,4 +941,100 @@ void init_model_ceiling()
 
   obj[8].visible = true;
   obj[8].prog = shader_program_id;
+}
+bool TestRayOBBIntersection(
+	vec3 ray_origin ,        // Origine du rayon, dans le repère du monde
+	vec3 ray_direction,     // Direction du rayon (PAS la cible !), dans le repère du monde. Doit être normalisé
+	vec3 aabb_min,          // Coordonnées minimales X,Y,Z du modèle lorsqu'il n'est pas transformé du tout
+	vec3 aabb_max,          // Coordonnées maximales X,Y,Z. Souvent aabb_min*-1 si votre modèle est centré, mais ce n'est pas toujours le cas
+	vec3 ModelMatrix       // Transformation appliquée au modèle (et qui sera donc appliquée à la boîte englobante) 
+){
+float tMin = 0.0f;
+float tMax = 100000.0f;
+
+vec3 OBBposition_worldspace(ModelMatrix.x, ModelMatrix.y, ModelMatrix.y);
+
+vec3 delta = OBBposition_worldspace - ray_origin;
+vec3 xaxis(1,0, 0);
+float e = dot(xaxis, delta);
+float f = dot(ray_direction, xaxis);
+
+// Beware, don't do the division if f is near 0 ! See full source code for details.
+float t1 = (e+aabb_min.x)/f; // Intersection with the "left" plane
+float t2 = (e+aabb_max.x)/f; // Intersection with the "right" plane
+
+if (t1>t2){ // if wrong order
+	float w=t1;t1=t2;t2=w; // swap t1 and t2
+}
+// tMax est l'intersection « lointaine » la plus proche (parmi les paires de plans X,Y et Z)
+if ( t2 < tMax ) tMax = t2;
+// tMin est l'intersection « proche » la plus lointaine (parmi les paires de plans X,Y et Z)
+if ( t1 > tMin ) tMin = t1;
+if (tMax < tMin )return false;
+vec3 yaxis(0,1, 0);
+e = dot(yaxis, delta);
+f = dot(ray_direction, yaxis);
+
+// Beware, don't do the division if f is near 0 ! See full source code for details.
+t1 = (e+aabb_min.y)/f; // Intersection with the "left" plane
+t2 = (e+aabb_max.y)/f; // Intersection with the "right" plane
+
+if (t1>t2){ // if wrong order
+	float w=t1;t1=t2;t2=w; // swap t1 and t2
+}
+// tMax est l'intersection « lointaine » la plus proche (parmi les paires de plans X,Y et Z)
+if ( t2 < tMax ) tMax = t2;
+// tMin est l'intersection « proche » la plus lointaine (parmi les paires de plans X,Y et Z)
+if ( t1 > tMin ) tMin = t1;
+if (tMax < tMin )return false;
+
+vec3 zaxis(0,0, -1);
+e = dot(zaxis, delta);
+f = dot(ray_direction, zaxis);
+
+// Beware, don't do the division if f is near 0 ! See full source code for details.
+t1 = (e+aabb_min.z)/f; // Intersection with the "left" plane
+t2 = (e+aabb_max.z)/f; // Intersection with the "right" plane
+
+if (t1>t2){ // if wrong order
+	float w=t1;t1=t2;t2=w; // swap t1 and t2
+}
+// tMax est l'intersection « lointaine » la plus proche (parmi les paires de plans X,Y et Z)
+if ( t2 < tMax ) tMax = t2;
+// tMin est l'intersection « proche » la plus lointaine (parmi les paires de plans X,Y et Z)
+if ( t1 > tMin ) tMin = t1;
+if (tMax < tMin )return false;
+return true;
+}
+
+void fonction_Intersection(){
+	vec3 aabb_min(-2.5f, -1.0f, -0.5f);
+	vec3 aabb_max( 2.5f,  10.0f,  0.5f);
+
+	// The ModelMatrix transforms :
+	// - the mesh to its desired position and orientation
+	// - but also the AABB (defined with aabb_min and aabb_max) into an OBB
+  mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x, 1.0f, 0.0f, 0.0f);
+  mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
+  mat4 rotation_z = matrice_rotation(cam.tr.rotation_euler.z, 0.0f, 0.0f, 1.0f);
+  mat4 rotation = rotation_z*rotation_y*rotation_x;
+	vec3 ModelMatrix = rotation*obj[3].tr.translation-cam.tr.translation;
+  vec3 ray_origin = cam.tr.translation ;
+
+  
+  
+	vec3 ray_direction = rotation*vec3(0,0,1);
+	if ( TestRayOBBIntersection(
+		ray_origin, 
+		ray_direction, 
+		aabb_min, 
+		aabb_max,
+		ModelMatrix)
+	){
+		obj[3].texture_id = glhelper::load_texture("data/grisselected.tga");
+	}
+  else{
+    obj[3].texture_id = glhelper::load_texture("data/gris.tga");
+  	std::cout<< "test" << std::endl;
+  }
 }
