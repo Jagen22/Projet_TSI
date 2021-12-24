@@ -1,12 +1,18 @@
 /*****************************************************************************\
  * TP CPE, 4ETI, TP synthese d'images
- * --------------
+ * -------------- ALEX
  *
  * Programme principal des appels OpenGL
  \*****************************************************************************/
 
 #include "declaration.h"
+#include <bits/stdc++.h>
+//#include <irrKlang.h>
 
+// using namespace irrklang;
+// ISoundEngine *SoundEngine = createIrrKlangDevice();
+
+    
 vec2 PosAnc = vec2(300,300);
 //identifiant des shaders
 GLuint shader_program_id;
@@ -16,10 +22,9 @@ int longu = 600;
 int Cursor_Upe = 600;
 
 float dL=0.1f;
-
 camera cam;
 
-const int nb_obj = 9;
+const int nb_obj = 175;
 objet3d obj[nb_obj];
 
 const int nb_text = 2;
@@ -29,31 +34,36 @@ float angle_x_model_1 = 0.0f;
 float angle_y_model_1 = 0.0f;
 float angle_view = 0.0f;
 
-int torche = 0;
+int torche = 1;
 int lumiereR = 0;
 int lumiereV = 0;
 int lumiereB = 0;
 
+int i = 0;
+int k = 0;
+
 float largMaison = 30.0;
 float hautMaison = 20.0;
+int compteur = 0;
 
 static void init()
 {
   shader_program_id = glhelper::create_program_from_file("shaders/shader.vert", "shaders/shader.frag"); CHECK_GL_ERROR();
-
   cam.projection = matrice_projection(60.0f*M_PI/180.0f,1.0f,0.01f,100.0f);
-  cam.tr.translation = vec3(1.0f, 2.0f, 0.0f);
+  cam.tr.translation = vec3(0.0f, 2.0f, 0.0f);
   // cam.tr.translation = vec3(0.0f, 20.0f, 0.0f);
   // cam.tr.rotation_center = vec3(0.0f, 20.0f, 0.0f);
   // cam.tr.rotation_euler = vec3(M_PI/2., 0.0f, 0.0f);
-  init_model_3();
   init_model_dino();
   init_model_ground();
-  init_model_ceiling();
+  init_model_3();
   init_model_wall1();
   init_model_wall2();
   init_model_wall3();
   init_model_wall4();
+  init_model_ceiling();
+  init_model_switch();
+  init_model_lumiere();
 
   // gui_program_id = glhelper::create_program_from_file("shaders/gui.vert", "shaders/gui.frag"); CHECK_GL_ERROR();
 
@@ -78,35 +88,52 @@ static void display_callback()
   mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
   mat4 rotation = rotation_x*rotation_y;
 
+  //Si une touche de deplacement est activee, on teste si la future position depasse les limites de la map
+  //Dans le cas ou le deplacement est valide, on deplace la camera de dL dans la direction d'orientation de la camera
+  //On resalise ensuite un test : dans le cas où on ne saute pas on force la camera en y=2
   if (Move_Up){
-    cam.tr.translation += rotation*vec3(0,0,dL);
-    if (!SpaceBar){cam.tr.translation.y = 2;}
-    //obj[0].tr.translation.x += dL;
+    if (abs(cam.tr.translation.x + (rotation*vec3(0,0,dL)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z + (rotation*vec3(0,0,dL)).z) < largMaison/2 - 1)){
+      cam.tr.translation += rotation*vec3(0,0,dL);
+      if (!SpaceBar){cam.tr.translation.y = 2;}
+    }
+
   }
   if(Move_Down){
-    cam.tr.translation -= rotation*vec3(0,0,dL);
-    if (!SpaceBar){cam.tr.translation.y = 2;}
-    
-    //obj[0].tr.translation -= obj[0].tr.rotation_euler.z*vec3(0,0,dL);
+    if (abs(cam.tr.translation.x - (rotation*vec3(0,0,dL)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z - (rotation*vec3(0,0,dL)).z) < largMaison/2 - 1)){
+      cam.tr.translation -= rotation*vec3(0,0,dL);
+      if (!SpaceBar){cam.tr.translation.y = 2;}
+    }
   }
+
   if(Move_Left){
-    cam.tr.translation -= rotation*vec3(dL,0,0);
-    if (!SpaceBar){cam.tr.translation.y = 2;}
+    if (abs(cam.tr.translation.x - (rotation*vec3(dL,0,0)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z - (rotation*vec3(dL,0,0)).z) < largMaison/2 - 1)){
+      cam.tr.translation -= rotation*vec3(dL,0,0);
+      if (!SpaceBar){cam.tr.translation.y = 2;}
+    }
   }
+
   if(Move_Right){
-    cam.tr.translation += rotation*vec3(dL,0,0);
-    if (!SpaceBar){cam.tr.translation.y = 2;}
+    if (abs(cam.tr.translation.x + (rotation*vec3(dL,0,0)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z + (rotation*vec3(dL,0,0)).z) < largMaison/2 - 1)){
+      cam.tr.translation += rotation*vec3(dL,0,0);
+      if (!SpaceBar){cam.tr.translation.y = 2;}
+    }
   }
+
   cam.tr.rotation_center = cam.tr.translation;
   //glTranslated(cos(cam.tr.rotation_euler.y) , sin(cam.tr.rotation_euler.z) ,0);
+  
+  obj[0].tr.translation = cam.tr.translation+vec3(0.0,0.0,5.0);
+  obj[0].tr.rotation_euler.y = -cam.tr.rotation_euler.y;  
 
 
   //Affichage des differents objets
-  for(int i = 0; i < nb_obj; ++i)
+  for(int i = 0; i < nb_obj; ++i){
     draw_obj3d(obj + i, cam);
-  
+  }
+
   // for(int i = 0; i < nb_text; ++i)
   //   draw_text(text_to_draw + i);
+  fonction_Intersection();
 
   glutSwapBuffers();
 }
@@ -123,7 +150,9 @@ static void keyboard_callback(unsigned char key, int, int)
     case 27:
       exit(0);
       break;
-
+    case 'e':
+      Action = true;
+      break;
     case 'z':
       Move_Up = true;
       break;
@@ -151,12 +180,9 @@ static void keyboard_callback(unsigned char key, int, int)
     case 'b':
       lumiereB = 1-lumiereB;
       break;
-    // case 'k':
-    //   angle_y_model_1 += d_angle;
-    //   break;
-    // case 'm':
-    //   angle_y_model_1 -= d_angle;
-    //   break;
+    case 'm':
+      text_to_draw[0].visible = !(text_to_draw[0].visible);
+      break;
   }
 }
 
@@ -213,6 +239,15 @@ static void special_callback_stop(int key, int,int)
     case GLUT_KEY_RIGHT:
     Move_Right = false;
       break;
+
+    }
+}
+
+static void mouse_clic(int button, int state, int x, int y){
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
+      std::cout << "clic"<< std::endl;
+      std::cout << x << std::endl;
+      std::cout << y << std::endl;
   }
 }
 
@@ -234,28 +269,22 @@ static void timer_callback(int)
   }
   if (Cursor_Down && cam.tr.rotation_euler.x > -1){
     cam.tr.rotation_euler.x -= angle;
-    //std::cout << cam.tr.rotation_euler.x  << std::endl;
   }
-  // mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
-  // mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
-  // mat4 rotation = rotation_x*rotation_y;
-
+  
  
   //Gestion du saut du personnage
   if (SpaceBar){
     //std::cout << obj[0].tr.translation.y << std::endl;
-    while(obj[0].tr.translation.y <= 2 && Jump == false){
+    while(cam.tr.translation.y <= 4 && Jump == false){
       cam.tr.translation.y += 0.1;
-      obj[0].tr.translation.y += 0.1;
-      if (obj[0].tr.translation.y >= 2) {
+      if (cam.tr.translation.y >= 4) {
         Jump = true;
       }
       break;
     }
     if (Jump) {
       cam.tr.translation.y-=0.1;
-      obj[0].tr.translation.y -= 0.1;
-      if (obj[0].tr.translation.y <= 0) {
+      if (cam.tr.translation.y <= 2) {
         Jump = false;
         SpaceBar = false;
       }
@@ -285,7 +314,7 @@ static void timer_callback(int)
   glutPostRedisplay();
 }
 
-static void test(int xmous,int ymous){
+static void mouse_move(int xmous,int ymous){
   vec2 posACT = vec2(xmous,ymous);
   int limminrectMousse = 15;
   int limmaxrectMousse = 30;
@@ -317,23 +346,11 @@ static void test(int xmous,int ymous){
     }
     Cursor_Down = true;
   }
-  // vec2 difPos = posACT-PosAnc;
-
-  // std::cout << cam.tr.rotation_euler << std::endl;
-  // std::cout << "*************************" << std::endl;
-
-  // cam.tr.rotation_euler.y = cam.tr.rotation_euler.y + difPos.x*0.001f;
-  // cam.tr.rotation_euler.x = cam.tr.rotation_euler.x + difPos.y*0.001f;
-  // if difPos.x*0.001f
-
-  // glutWarpPointer(longu/2,Cursor_Upe/2);
-
-
 }
 
 int main(int argc, char** argv)
 {
-  
+  //SoundEngine->play2D("data/Sabaton.mp3", true);
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | MACOSX_COMPATIBILITY);
   glutInitWindowSize(600, 600);
@@ -347,7 +364,8 @@ int main(int argc, char** argv)
   glutKeyboardUpFunc(keyboard_callback_stop);
   glutSpecialFunc(special_callback);
   glutSpecialUpFunc(special_callback_stop);
-  glutPassiveMotionFunc(test);
+  glutPassiveMotionFunc(mouse_move);
+  glutMouseFunc(mouse_clic);
   glutTimerFunc(25, timer_callback, 0);
 
   
@@ -530,7 +548,7 @@ void init_model_dino()
   mesh m = load_obj_file("data/stegosaurus.obj");
 
   // Affecte une transformation sur les sommets du maillage
-  float s = 0.2f;
+  float s = 0.55f;
   mat4 transform = mat4(   s, 0.0f, 0.0f, 0.0f,
       0.0f,    s, 0.0f, 0.0f,
       0.0f, 0.0f,   s , 0.0f,
@@ -538,7 +556,7 @@ void init_model_dino()
   apply_deformation(&m,transform);
 
   // Centre la rotation du modele 1 autour de son centre de gravite approximatif
-  obj[0].tr.rotation_center = vec3(0.0f,0.0f,0.0f);
+  obj[0].tr.rotation_euler = vec3(0.0f,0.0f,0.0f);
 
   update_normals(&m);
   fill_color(&m,vec3(1.0f,1.0f,1.0f));
@@ -546,54 +564,36 @@ void init_model_dino()
   obj[0].vao = upload_mesh_to_gpu(m);
 
   obj[0].nb_triangle = m.connectivity.size();
-  obj[0].texture_id = glhelper::load_texture("data/stegosaurus.tga");
+  obj[0].texture_id = glhelper::load_texture("data/T_arms_A.tga");
   obj[0].visible = true;
   obj[0].prog = shader_program_id;
 
-  obj[0].tr.translation = vec3(0.0, 0.0, -5.0);
+
+  obj[0].tr.translation = cam.tr.translation;
+  obj[0].tr.rotation_euler = -1*cam.tr.rotation_euler;
+
   
 }
 
-void init_model_3()
-{
-  // Chargement d'un maillage a partir d'un fichier
-  mesh m = load_obj_file("data/stegosaurus.obj");
-
-  // Affecte une transformation sur les sommets du maillage
-  float s = 0.1f;
+void  init_model_lumiere(){
+  mesh m = load_obj_file("data/lumiere.obj");
+  float s = 0.05f;
   mat4 transform = mat4(   s, 0.0f, 0.0f, 0.0f,
-      0.0f,    s, 0.0f, 0.50f,
+      0.0f,    s, 0.0f, 0.0f,
       0.0f, 0.0f,   s , 0.0f,
       0.0f, 0.0f, 0.0f, 1.0f);
-  apply_deformation(&m,matrice_rotation(M_PI/2.0f,1.0f,0.0f,0.0f));
-  apply_deformation(&m,matrice_rotation(M_PI,0.0f,1.0f,0.0f));
   apply_deformation(&m,transform);
-
-  update_normals(&m);
-  //invert_normals(&m);
   fill_color(&m,vec3(1.0f,1.0f,1.0f));
 
-  obj[7].vao = upload_mesh_to_gpu(m);
+  obj[171].vao = upload_mesh_to_gpu(m);
 
-  obj[7].nb_triangle = m.connectivity.size();
-  obj[7].texture_id = glhelper::load_texture("data/T_arms_A.png");
+  obj[171].nb_triangle = m.connectivity.size();
+  obj[171].texture_id = glhelper::load_texture("data/AM134_14_wood_1.tga");
+  obj[171].visible = true;
+  obj[171].prog = shader_program_id;
+  obj[171].tr.translation = vec3(0,5,-1);
 
-  obj[7].visible = true;
-  obj[7].prog = shader_program_id;
- 
-  obj[7].tr.translation = vec3(1.0, 1.0, -10.0);
-  
-  obj[8].vao = obj[7].vao;
-
-  obj[8].nb_triangle = obj[7].nb_triangle;
-  obj[8].texture_id = obj[7].texture_id;
-
-  obj[8].visible = obj[7].texture_id;
-  obj[8].prog = obj[7].texture_id;
- 
-  obj[8].tr.translation = vec3(1.0, 1.0, -11.0);
 }
-
 void init_model_ground()
 {
 
@@ -644,55 +644,62 @@ void init_model_ground()
   obj[1].prog = shader_program_id;
 }
 
-void init_model_ceiling()
+void init_model_3()
 {
+  // Chargement d'un maillage a partir d'un fichier
+  mesh m = load_obj_file("data/Gramophone/etagere.obj");
 
-  mesh m;
+  // Affecte une transformation sur les sommets du maillage
+  float s = 0.25f;
+  mat4 transform = mat4(   s, 0.0f, 0.0f, 0.0f,
+      0.0f,    s, 0.0f, 0.50f,
+      0.0f, 0.0f,   s , 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f);
+  apply_deformation(&m,transform);
 
-  //coordonnees geometriques des sommets
-  vec3 p0=vec3(-largMaison/2,hautMaison,-largMaison/2); //H
-  vec3 p1=vec3( largMaison/2,hautMaison,-largMaison/2); //G
-  vec3 p2=vec3( largMaison/2,hautMaison, largMaison/2); //F
-  vec3 p3=vec3(-largMaison/2,hautMaison, largMaison/2); //E
-  
+  update_normals(&m);
+  //invert_normals(&m);
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
 
-  //normales pour chaque sommet
-  vec3 n0=vec3(0.0f,1.0f,0.0f);
-  vec3 n1=n0;
-  vec3 n2=n0;
-  vec3 n3=n0;
-
-  //couleur pour chaque sommet
-  vec3 c0=vec3(1.0f,1.0f,1.0f);
-  vec3 c1=c0;
-  vec3 c2=c0;
-  vec3 c3=c0;
-
-  //texture du sommet
-  vec2 t0=vec2(0.0f,0.0f);
-  vec2 t1=vec2(1.0f,0.0f);
-  vec2 t2=vec2(1.0f,1.0f);
-  vec2 t3=vec2(0.0f,1.0f);
-
-  vertex_opengl v0=vertex_opengl(p0,n0,c0,t0);
-  vertex_opengl v1=vertex_opengl(p1,n1,c1,t1);
-  vertex_opengl v2=vertex_opengl(p2,n2,c2,t2);
-  vertex_opengl v3=vertex_opengl(p3,n3,c3,t3);
-
-  m.vertex = {v0, v1, v2, v3};
-
-  //indice des triangles
-  triangle_index tri0=triangle_index(0,1,2);
-  triangle_index tri1=triangle_index(0,2,3);  
-  m.connectivity = {tri0, tri1};
-
-  obj[2].nb_triangle = 2;
   obj[2].vao = upload_mesh_to_gpu(m);
 
-  obj[2].texture_id = glhelper::load_texture("data/ceiling.tga");
+  obj[2].nb_triangle = m.connectivity.size();
+  obj[2].texture_id = glhelper::load_texture("data/gris.tga");
 
   obj[2].visible = true;
   obj[2].prog = shader_program_id;
+
+  obj[2].tr.translation = vec3(-5, -0.5, -14.25);
+  
+  obj[3].vao = obj[2].vao;
+
+  obj[3].nb_triangle = obj[2].nb_triangle;
+  obj[3].texture_id = obj[2].texture_id;
+
+  obj[3].visible = obj[2].visible;
+  obj[3].prog = obj[2].prog;
+
+  obj[3].tr.translation = vec3(2.5, -0.5, -14.25);
+
+
+  m = load_obj_file("data/Gramophone/Disk.obj");
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
+  obj[9].vao = upload_mesh_to_gpu(m);
+  obj[9].nb_triangle = m.connectivity.size();
+  obj[9].visible = true;
+  obj[9].prog = shader_program_id;
+  obj[9].tr.translation = vec3(-4.9, 1.825, -14.25);
+  for (k = 0;k<4;k++){
+    for (i = 0; i<41;i++){
+      obj[(40*k)+i+10].vao = obj[9].vao;
+      obj[(40*k)+i+10].nb_triangle = obj[9].nb_triangle ;
+      obj[(40*k)+i+10].visible = true;
+      obj[(40*k)+i+10].prog = shader_program_id;
+      obj[(40*k)+i+10].tr.translation = obj[9].tr.translation+vec3(0.25*i,(k)*1.2,0);
+    }
+
+  }
+
 }
 
 void init_model_wall1()
@@ -736,13 +743,13 @@ void init_model_wall1()
   triangle_index tri1=triangle_index(0,2,3);  
   m.connectivity = {tri0, tri1};
 
-  obj[3].nb_triangle = 2;
-  obj[3].vao = upload_mesh_to_gpu(m);
+  obj[4].nb_triangle = 2;
+  obj[4].vao = upload_mesh_to_gpu(m);
 
-  obj[3].texture_id = glhelper::load_texture("data/WoodHor2.tga");
+  obj[4].texture_id = glhelper::load_texture("data/WoodHor2.tga");
 
-  obj[3].visible = true;
-  obj[3].prog = shader_program_id;
+  obj[4].visible = true;
+  obj[4].prog = shader_program_id;
 }
 
 void init_model_wall2()
@@ -786,13 +793,13 @@ void init_model_wall2()
   triangle_index tri1=triangle_index(0,2,3);  
   m.connectivity = {tri0, tri1};
 
-  obj[4].nb_triangle = 2;
-  obj[4].vao = upload_mesh_to_gpu(m);
+  obj[5].nb_triangle = 2;
+  obj[5].vao = upload_mesh_to_gpu(m);
 
-  obj[4].texture_id = glhelper::load_texture("data/WoodHor2.tga");
+  obj[5].texture_id = glhelper::load_texture("data/WoodHor2.tga");
 
-  obj[4].visible = true;
-  obj[4].prog = shader_program_id;
+  obj[5].visible = true;
+  obj[5].prog = shader_program_id;
 }
 
 void init_model_wall3()
@@ -836,13 +843,13 @@ void init_model_wall3()
   triangle_index tri1=triangle_index(0,2,3);  
   m.connectivity = {tri0, tri1};
 
-  obj[5].nb_triangle = 2;
-  obj[5].vao = upload_mesh_to_gpu(m);
+  obj[6].nb_triangle = 2;
+  obj[6].vao = upload_mesh_to_gpu(m);
 
-  obj[5].texture_id = glhelper::load_texture("data/WoodHor2.tga");
+  obj[6].texture_id = glhelper::load_texture("data/WoodHor2.tga");
 
-  obj[5].visible = true;
-  obj[5].prog = shader_program_id;
+  obj[6].visible = true;
+  obj[6].prog = shader_program_id;
 }
 
 void init_model_wall4()
@@ -886,11 +893,199 @@ void init_model_wall4()
   triangle_index tri1=triangle_index(0,2,3);  
   m.connectivity = {tri0, tri1};
 
-  obj[6].nb_triangle = 2;
-  obj[6].vao = upload_mesh_to_gpu(m);
+  obj[7].nb_triangle = 2;
+  obj[7].vao = upload_mesh_to_gpu(m);
 
-  obj[6].texture_id = glhelper::load_texture("data/WoodHor2.tga");
+  obj[7].texture_id = glhelper::load_texture("data/WoodHor2.tga");
 
-  obj[6].visible = true;
-  obj[6].prog = shader_program_id;
+  obj[7].visible = true;
+  obj[7].prog = shader_program_id;
+}
+
+void init_model_ceiling()
+{
+
+  mesh m;
+
+  //coordonnees geometriques des sommets
+  vec3 p0=vec3(-largMaison/2,hautMaison,-largMaison/2); //H
+  vec3 p1=vec3( largMaison/2,hautMaison,-largMaison/2); //G
+  vec3 p2=vec3( largMaison/2,hautMaison, largMaison/2); //F
+  vec3 p3=vec3(-largMaison/2,hautMaison, largMaison/2); //E
+  
+
+  //normales pour chaque sommet
+  vec3 n0=vec3(0.0f,1.0f,0.0f);
+  vec3 n1=n0;
+  vec3 n2=n0;
+  vec3 n3=n0;
+
+  //couleur pour chaque sommet
+  vec3 c0=vec3(1.0f,1.0f,1.0f);
+  vec3 c1=c0;
+  vec3 c2=c0;
+  vec3 c3=c0;
+
+  //texture du sommet
+  vec2 t0=vec2(0.0f,0.0f);
+  vec2 t1=vec2(1.0f,0.0f);
+  vec2 t2=vec2(1.0f,1.0f);
+  vec2 t3=vec2(0.0f,1.0f);
+
+  vertex_opengl v0=vertex_opengl(p0,n0,c0,t0);
+  vertex_opengl v1=vertex_opengl(p1,n1,c1,t1);
+  vertex_opengl v2=vertex_opengl(p2,n2,c2,t2);
+  vertex_opengl v3=vertex_opengl(p3,n3,c3,t3);
+
+  m.vertex = {v0, v1, v2, v3};
+
+  //indice des triangles
+  triangle_index tri0=triangle_index(0,1,2);
+  triangle_index tri1=triangle_index(0,2,3);  
+  m.connectivity = {tri0, tri1};
+
+  obj[8].nb_triangle = 2;
+  obj[8].vao = upload_mesh_to_gpu(m);
+
+  obj[8].texture_id = glhelper::load_texture("data/ceiling.tga");
+
+  obj[8].visible = true;
+  obj[8].prog = shader_program_id;
+}
+bool TestRayOBBIntersection(
+	vec3 ray_origin ,        // Origine du rayon, dans le repère du monde
+	vec3 ray_direction,     // Direction du rayon (PAS la cible !), dans le repère du monde. Doit être normalisé
+	vec3 aabb_min,          // Coordonnées minimales X,Y,Z du modèle lorsqu'il n'est pas transformé du tout
+	vec3 aabb_max,          // Coordonnées maximales X,Y,Z. Souvent aabb_min*-1 si votre modèle est centré, mais ce n'est pas toujours le cas
+	vec3 ModelMatrix       // Transformation appliquée au modèle (et qui sera donc appliquée à la boîte englobante) 
+){
+float tMin = 0.0f;
+float tMax = 100000.0f;
+
+vec3 OBBposition_worldspace(ModelMatrix.x, ModelMatrix.y, ModelMatrix.y);
+
+vec3 delta = OBBposition_worldspace - ray_origin;
+vec3 xaxis(1,0, 0);
+float e = dot(xaxis, delta);
+float f = dot(ray_direction, xaxis);
+
+// Beware, don't do the division if f is near 0 ! See full source code for details.
+float t1 = (e+aabb_min.x)/f; // Intersection with the "left" plane
+float t2 = (e+aabb_max.x)/f; // Intersection with the "right" plane
+
+if (t1>t2){ // if wrong order
+	float w=t1;t1=t2;t2=w; // swap t1 and t2
+}
+// tMax est l'intersection « lointaine » la plus proche (parmi les paires de plans X,Y et Z)
+if ( t2 < tMax ) tMax = t2;
+// tMin est l'intersection « proche » la plus lointaine (parmi les paires de plans X,Y et Z)
+if ( t1 > tMin ) tMin = t1;
+if (tMax < tMin )return false;
+vec3 yaxis(0,1, 0);
+e = dot(yaxis, delta);
+f = dot(ray_direction, yaxis);
+
+// Beware, don't do the division if f is near 0 ! See full source code for details.
+t1 = (e+aabb_min.y)/f; // Intersection with the "left" plane
+t2 = (e+aabb_max.y)/f; // Intersection with the "right" plane
+
+if (t1>t2){ // if wrong order
+	float w=t1;t1=t2;t2=w; // swap t1 and t2
+}
+// tMax est l'intersection « lointaine » la plus proche (parmi les paires de plans X,Y et Z)
+if ( t2 < tMax ) tMax = t2;
+// tMin est l'intersection « proche » la plus lointaine (parmi les paires de plans X,Y et Z)
+if ( t1 > tMin ) tMin = t1;
+if (tMax < tMin )return false;
+
+vec3 zaxis(0,0, -1);
+e = dot(zaxis, delta);
+f = dot(ray_direction, zaxis);
+
+// Beware, don't do the division if f is near 0 ! See full source code for details.
+t1 = (e+aabb_min.z)/f; // Intersection with the "left" plane
+t2 = (e+aabb_max.z)/f; // Intersection with the "right" plane
+
+if (t1>t2){ // if wrong order
+	float w=t1;t1=t2;t2=w; // swap t1 and t2
+}
+// tMax est l'intersection « lointaine » la plus proche (parmi les paires de plans X,Y et Z)
+if ( t2 < tMax ) tMax = t2;
+// tMin est l'intersection « proche » la plus lointaine (parmi les paires de plans X,Y et Z)
+if ( t1 > tMin ) tMin = t1;
+if (tMax < tMin )return false;
+return true;
+}
+
+void fonction_Intersection(){
+	vec3 aabb_min(-2.5f, -1.0f, -0.5f);
+	vec3 aabb_max( 2.5f,  10.0f,  0.5f);
+
+	// The ModelMatrix transforms :
+	// - the mesh to its desired position and orientation
+	// - but also the AABB (defined with aabb_min and aabb_max) into an OBB
+  mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x, 1.0f, 0.0f, 0.0f);
+  mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
+  mat4 rotation_z = matrice_rotation(cam.tr.rotation_euler.z, 0.0f, 0.0f, 1.0f);
+  mat4 rotation = rotation_z*rotation_y*rotation_x;
+	vec3 ModelMatrix = rotation*obj[3].tr.translation-cam.tr.translation;
+  vec3 ray_origin = cam.tr.translation ;
+
+  
+  
+	vec3 ray_direction = rotation*vec3(0,0,1);
+	if ( TestRayOBBIntersection(
+		ray_origin, 
+		ray_direction, 
+		aabb_min, 
+		aabb_max,
+		ModelMatrix)
+	){
+		obj[3].texture_id = glhelper::load_texture("data/grisselected.tga");
+	}
+  else{
+    obj[3].texture_id = glhelper::load_texture("data/gris.tga");
+  	std::cout<< "test" << std::endl;
+  }
+}
+
+void init_model_switch()
+{
+  // Chargement d'un maillage a partir d'un fichier
+  mesh m = load_obj_file("data/Switch2.obj");
+
+  // Affecte une transformation sur les sommets du maillage
+  float s = 0.1f;
+  mat4 transform = mat4(   s, 0.0f, 0.0f, 0.0f,
+      0.0f,    s, 0.0f, 0.0f,
+      0.0f, 0.0f,   s , 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f);
+  apply_deformation(&m,transform);
+
+  // Centre la rotation du modele 1 autour de son centre de gravite approximatif
+  obj[172].tr.rotation_center = vec3(0.0f,0.0f,0.0f);
+
+  update_normals(&m);
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
+
+  obj[172].vao = upload_mesh_to_gpu(m);
+  obj[172].nb_triangle = m.connectivity.size();
+  obj[172].texture_id = glhelper::load_texture("data/SwitchRed.jpg");
+  obj[172].visible = true;
+  obj[172].prog = shader_program_id;
+  obj[172].tr.translation = vec3(-2.0, 2.0, largMaison/2-0.1);
+  
+  obj[173].vao = obj[172].vao;
+  obj[173].nb_triangle = obj[172].nb_triangle;
+  obj[173].texture_id = glhelper::load_texture("data/SwitchGreen.jpg");
+  obj[173].visible = obj[172].visible;
+  obj[173].prog = obj[172].prog;
+  obj[173].tr.translation = vec3(0.0, 2.0, largMaison/2-0.1);
+  
+  obj[174].vao = obj[172].vao;
+  obj[174].nb_triangle = obj[172].nb_triangle;
+  obj[174].texture_id = glhelper::load_texture("data/SwitchBlue.jpg");
+  obj[174].visible = obj[172].visible;
+  obj[174].prog = obj[172].prog;
+  obj[174].tr.translation = vec3(2.0, 2.0, largMaison/2-0.1);
 }

@@ -48,7 +48,7 @@ void main (void)
     vec3 r = reflect(d,n);
     vec3 o = normalize(-coordonnee_3d_locale);
     faisseau = 0.5*pow(clamp(dot(lampetorchedirection,d),0.0,1.0),20.0);
-    float pourcentage = 0.025;
+    float pourcentage;
 
     pourcentage = 0.7*faisseau;
     
@@ -72,6 +72,6 @@ void main (void)
   if (lumiereB == 1){
     GREEN = vec4(0.25,0.25,0.75,1.0);
   }
-  color = (ambiant+diffuse)*color_final*RED+(ambiant+diffuse)*color_final*GREEN+(ambiant+diffuse)*color_final*BLUE+specular*RED+specular*GREEN+specular*BLUE+(faisseau*yellow*(ambiant+diffuse)*color_final);
+  color = (ambiant+diffuse)*color_final*(RED+GREEN+BLUE)+specular*RED+specular*GREEN+specular*BLUE+(faisseau*yellow*(ambiant+diffuse)*color_final);
   // couleur finale
 }
