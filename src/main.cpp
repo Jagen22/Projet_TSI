@@ -7,7 +7,7 @@
 
 #include "declaration.h"
 #include <bits/stdc++.h>
-//#include <irrKlang.h>
+// #include <irrKlang.h>
 
 // using namespace irrklang;
 // ISoundEngine *SoundEngine = createIrrKlangDevice();
@@ -24,14 +24,11 @@ int Cursor_Upe = 600;
 float dL=0.1f;
 camera cam;
 
-const int nb_obj = 175;
+const int nb_obj = 178;
 objet3d obj[nb_obj];
 
 const int nb_text = 2;
 text text_to_draw[nb_text];
-
-const int nb_menu = 1;
-objet3d menu[nb_menu];
 
 float angle_x_model_1 = 0.0f;
 float angle_y_model_1 = 0.0f;
@@ -48,8 +45,6 @@ int k = 0;
 float largMaison = 30.0;
 float hautMaison = 20.0;
 int compteur = 0;
-
-bool ActionMenu = false;
 
 static void init()
 {
@@ -69,56 +64,24 @@ static void init()
   init_model_ceiling();
   init_model_switch();
   init_model_lumiere();
-  init_menu();
 
-  gui_program_id = glhelper::create_program_from_file("shaders/gui.vert", "shaders/gui.frag"); CHECK_GL_ERROR();
+  // gui_program_id = glhelper::create_program_from_file("shaders/gui.vert", "shaders/gui.frag"); CHECK_GL_ERROR();
 
-  text_to_draw[0].value = "Music 1";
-  text_to_draw[0].bottomLeft = vec2(-0.2, 0.5);
-  text_to_draw[0].topRight = vec2(0.2, 1);
-  init_text(text_to_draw);
+  // text_to_draw[0].value = "CE";
+  // text_to_draw[0].bottomLeft = vec2(-0.2, 0.5);
+  // text_to_draw[0].topRight = vec2(0.2, 1);
+  // init_text(text_to_draw);
 
-  text_to_draw[1]=text_to_draw[0];
-  text_to_draw[1].value = "Music 2";
-  text_to_draw[1].bottomLeft.y = 0.0f;
-  text_to_draw[1].topRight.y = 0.5f;
+  // text_to_draw[1]=text_to_draw[0];
+  // text_to_draw[1].value = "Lyon";
+  // text_to_draw[1].bottomLeft.y = 0.0f;
+  // text_to_draw[1].topRight.y = 0.5f;
 }
 
 static void display_callback()
 {
   glClearColor(0.5f, 0.6f, 0.9f, 1.0f); CHECK_GL_ERROR();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_GL_ERROR();
-
-  if(ActionMenu){
-    menu[0].visible = true;
-    menu[0].tr.translation = cam.tr.translation;
-    menu[0].tr.rotation_euler.y = -cam.tr.rotation_euler.y; 
-  }
-  else{
-    menu[0].visible = false;
-    Deplacement();
-  }
-
-
-  //Affichage des differents objets
-  for(int i = 0; i < nb_obj; ++i){
-    draw_obj3d(obj + i, cam);
-  }
-
-  for(int i = 0; i < nb_menu; ++i){
-    draw_obj3d(menu + i, cam);
-  }
-
-  for(int i = 0; i < nb_text; ++i){
-    draw_text(text_to_draw + i);
-  }
-
-  fonction_Intersection();
-
-  glutSwapBuffers();
-}
-
-void Deplacement(){
 
   //Deplacement du personnage
   mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
@@ -161,6 +124,18 @@ void Deplacement(){
   
   obj[0].tr.translation = cam.tr.translation+vec3(0.0,0.0,5.0);
   obj[0].tr.rotation_euler.y = -cam.tr.rotation_euler.y;  
+
+
+  //Affichage des differents objets
+  for(int i = 0; i < nb_obj; ++i){
+    draw_obj3d(obj + i, cam);
+  }
+
+  // for(int i = 0; i < nb_text; ++i)
+  //   draw_text(text_to_draw + i);
+  fonction_Intersection();
+
+  glutSwapBuffers();
 }
 
 static void keyboard_callback(unsigned char key, int, int)
@@ -174,6 +149,9 @@ static void keyboard_callback(unsigned char key, int, int)
       break;
     case 27:
       exit(0);
+      break;
+    case 'e':
+      Action = true;
       break;
     case 'z':
       Move_Up = true;
@@ -211,10 +189,6 @@ static void keyboard_callback(unsigned char key, int, int)
 static void keyboard_callback_stop(unsigned char key, int, int){
     switch (key)
   {
-    case 'e':
-      ActionMenu = !ActionMenu;
-      std::cout << ActionMenu << std::endl;
-      break;
     case 'z':
       Move_Up = false;
       break;
@@ -281,40 +255,38 @@ static void timer_callback(int)
 { 
   glutTimerFunc(25, timer_callback, 0);
 
-  if(!ActionMenu){
-    //Gestion de la camera et du curseur
-    float angle = 0.02;
-    if (Cursor_Right){
-      cam.tr.rotation_euler.y += angle;
-      
-    }
-    if (Cursor_Left){
-      cam.tr.rotation_euler.y -= angle;
-    }
-    if (Cursor_Up && cam.tr.rotation_euler.x < 0.5){
-      cam.tr.rotation_euler.x += angle;
-    }
-    if (Cursor_Down && cam.tr.rotation_euler.x > -0.7){
-      cam.tr.rotation_euler.x -= angle;
-    }
+  //Gestion de la camera et du curseur
+  float angle = 0.02;
+  if (Cursor_Right){
+    cam.tr.rotation_euler.y += angle;
     
+  }
+  if (Cursor_Left){
+    cam.tr.rotation_euler.y -= angle;
+  }
+  if (Cursor_Up && cam.tr.rotation_euler.x < 0.5){
+    cam.tr.rotation_euler.x += angle;
+  }
+  if (Cursor_Down && cam.tr.rotation_euler.x > -1){
+    cam.tr.rotation_euler.x -= angle;
+  }
   
-    //Gestion du saut du personnage
-    if (SpaceBar){
-      //std::cout << obj[0].tr.translation.y << std::endl;
-      while(cam.tr.translation.y <= 4 && Jump == false){
-        cam.tr.translation.y += 0.1;
-        if (cam.tr.translation.y >= 4) {
-          Jump = true;
-        }
-        break;
+ 
+  //Gestion du saut du personnage
+  if (SpaceBar){
+    //std::cout << obj[0].tr.translation.y << std::endl;
+    while(cam.tr.translation.y <= 4 && Jump == false){
+      cam.tr.translation.y += 0.1;
+      if (cam.tr.translation.y >= 4) {
+        Jump = true;
       }
-      if (Jump) {
-        cam.tr.translation.y-=0.1;
-        if (cam.tr.translation.y <= 2) {
-          Jump = false;
-          SpaceBar = false;
-        }
+      break;
+    }
+    if (Jump) {
+      cam.tr.translation.y-=0.1;
+      if (cam.tr.translation.y <= 2) {
+        Jump = false;
+        SpaceBar = false;
       }
     }
   }
@@ -410,7 +382,7 @@ int main(int argc, char** argv)
   return 0;
 }
 
-void draw_text(const text * const t)
+/*void draw_text(const text * const t)
 {
   if(!t->visible) return;
 
@@ -437,7 +409,7 @@ void draw_text(const text * const t)
     glBindTexture(GL_TEXTURE_2D, t->texture_id);                            CHECK_GL_ERROR();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);                    CHECK_GL_ERROR();
   }
-}
+}*/
 
 void draw_obj3d(const objet3d* const obj, camera cam)
 {
@@ -510,7 +482,7 @@ void draw_obj3d(const objet3d* const obj, camera cam)
   glDrawElements(GL_TRIANGLES, 3*obj->nb_triangle, GL_UNSIGNED_INT, 0);     CHECK_GL_ERROR();
 }
 
-void init_text(text *t){
+/*void init_text(text *t){
   vec3 p0=vec3( 0.0f, 0.0f, 0.0f);
   vec3 p1=vec3( 0.0f, 1.0f, 0.0f);
   vec3 p2=vec3( 1.0f, 1.0f, 0.0f);
@@ -535,11 +507,11 @@ void init_text(text *t){
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,vboi);                                 CHECK_GL_ERROR();
   glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(index),index,GL_STATIC_DRAW);   CHECK_GL_ERROR();
 
-  t->texture_id = glhelper::load_texture("data/newFontR.tga");
+  t->texture_id = glhelper::load_texture("data/fontB.tga");
 
   t->visible = true;
   t->prog = gui_program_id;
-}
+}*/
 
 GLuint upload_mesh_to_gpu(const mesh& m)
 {
@@ -603,7 +575,7 @@ void init_model_dino()
   
 }
 
-void init_model_lumiere(){
+void  init_model_lumiere(){
   mesh m = load_obj_file("data/lumiere.obj");
   float s = 0.05f;
   mat4 transform = mat4(   s, 0.0f, 0.0f, 0.0f,
@@ -616,13 +588,42 @@ void init_model_lumiere(){
   obj[171].vao = upload_mesh_to_gpu(m);
 
   obj[171].nb_triangle = m.connectivity.size();
-  obj[171].texture_id = glhelper::load_texture("data/AM134_14_wood_1.tga");
+  obj[171].texture_id = glhelper::load_texture("data/marbre.tga");
   obj[171].visible = true;
+  
+  obj[171].tr.translation = vec3(largMaison/2-0.1, 4.0, 0.0 );
   obj[171].prog = shader_program_id;
-  obj[171].tr.translation = vec3(0,5,-1);
+// lumière gauche
+  obj[175].vao = obj[171].vao;
 
+  obj[175].nb_triangle = obj[171].nb_triangle;
+  obj[175].texture_id = glhelper::load_texture("data/marbre.tga");
+  obj[175].visible = true;
+  
+  obj[175].tr.translation = vec3(-largMaison/2-0.1, 4.0, 0.0 );
+  obj[175].tr.rotation_euler =  vec3(0.0,M_PI,0.0);
+  obj[175].prog = shader_program_id;
+// lumière gauche
+  obj[176].vao = obj[171].vao;
+
+  obj[176].nb_triangle = obj[171].nb_triangle;
+  obj[176].texture_id = glhelper::load_texture("data/marbre.tga");
+  obj[176].visible = true;
+  
+  obj[176].tr.translation = vec3(0.0, 7.0, -largMaison/2-0.1 );
+  obj[176].tr.rotation_euler =  vec3(0.0,M_PI/2,0.0);
+  obj[176].prog = shader_program_id;
+// lumière gauche
+  obj[177].vao = obj[171].vao;
+
+  obj[177].nb_triangle = obj[171].nb_triangle;
+  obj[177].texture_id = glhelper::load_texture("data/marbre.tga");
+  obj[177].visible = true;
+  
+  obj[177].tr.translation = vec3(0.0, 7.0, largMaison/2-0.1 );
+  obj[177].tr.rotation_euler =  vec3(0.0,-M_PI/2,0.0);
+  obj[177].prog = shader_program_id;
 }
-
 void init_model_ground()
 {
 
@@ -981,7 +982,6 @@ void init_model_ceiling()
   obj[8].visible = true;
   obj[8].prog = shader_program_id;
 }
-
 bool TestRayOBBIntersection(
 	vec3 ray_origin ,        // Origine du rayon, dans le repère du monde
 	vec3 ray_direction,     // Direction du rayon (PAS la cible !), dans le repère du monde. Doit être normalisé
@@ -1055,14 +1055,22 @@ void fonction_Intersection(){
 	// - the mesh to its desired position and orientation
 	// - but also the AABB (defined with aabb_min and aabb_max) into an OBB
   mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x, 1.0f, 0.0f, 0.0f);
-  mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
+  mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y-M_PI, 0.0f, 1.0f, 0.0f);
   mat4 rotation_z = matrice_rotation(cam.tr.rotation_euler.z, 0.0f, 0.0f, 1.0f);
   mat4 rotation = rotation_z*rotation_y*rotation_x;
-	vec3 ModelMatrix = rotation*obj[3].tr.translation-cam.tr.translation;
+  vec3 posObj ;
+  posObj.x = obj[3].tr.translation.x;
+  posObj.y = 2;
+  posObj.z = obj[3].tr.translation.z;
+	vec3 ModelMatrix = rotation*posObj;
   vec3 ray_origin = cam.tr.translation ;
 
   
   
+  rotation_x = matrice_rotation(cam.tr.rotation_euler.x, 1.0f, 0.0f, 0.0f);
+  rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
+  rotation_z = matrice_rotation(cam.tr.rotation_euler.z, 0.0f, 0.0f, 1.0f);
+  rotation = rotation_z*rotation_y*rotation_x;
 	vec3 ray_direction = rotation*vec3(0,0,1);
 	if ( TestRayOBBIntersection(
 		ray_origin, 
@@ -1072,10 +1080,11 @@ void fonction_Intersection(){
 		ModelMatrix)
 	){
 		obj[3].texture_id = glhelper::load_texture("data/grisselected.tga");
+  	//std::cout<< "test2" << std::endl;
 	}
   else{
     obj[3].texture_id = glhelper::load_texture("data/gris.tga");
-  	//std::cout<< "test" << std::endl;
+  	// std::cout<< "test" << std::endl;
   }
 }
 
@@ -1093,75 +1102,31 @@ void init_model_switch()
   apply_deformation(&m,transform);
 
   // Centre la rotation du modele 1 autour de son centre de gravite approximatif
-  obj[172].tr.rotation_center = vec3(0.0f,0.0f,0.0f);
+  obj[172].tr.rotation_center = vec3(-2.0f,2.0f,-2.0f);
 
   update_normals(&m);
-  fill_color(&m,vec3(1.0f,1.0f,1.0f));
-
+  fill_color(&m,vec3(0.5f,0.5f,0.5f));
   obj[172].vao = upload_mesh_to_gpu(m);
   obj[172].nb_triangle = m.connectivity.size();
-  obj[172].texture_id = glhelper::load_texture("data/SwitchRed.jpg");
+  obj[172].texture_id = glhelper::load_texture("data/Switch.tga");
   obj[172].visible = true;
   obj[172].prog = shader_program_id;
-  obj[172].tr.translation = vec3(-2.0, 2.0, largMaison/2-0.1);
+  obj[172].tr.translation = vec3(-2.0, 2.0,largMaison/2-0.1);
   
+  // fill_color(&m,vec3(1.0f,1.0f,1.0f));
   obj[173].vao = obj[172].vao;
   obj[173].nb_triangle = obj[172].nb_triangle;
-  obj[173].texture_id = glhelper::load_texture("data/SwitchGreen.jpg");
+  obj[173].texture_id = glhelper::load_texture("data/SwitchGreen.tga");
+  obj[173].tr.rotation_euler = vec3(0.0,M_PI/2,0.0);
   obj[173].visible = obj[172].visible;
   obj[173].prog = obj[172].prog;
+  obj[173].tr.rotation_euler = vec3(0.0,0.0,0.0);
   obj[173].tr.translation = vec3(0.0, 2.0, largMaison/2-0.1);
   
   obj[174].vao = obj[172].vao;
   obj[174].nb_triangle = obj[172].nb_triangle;
-  obj[174].texture_id = glhelper::load_texture("data/SwitchBlue.jpg");
+  obj[174].texture_id = glhelper::load_texture("data/SwitchBlue.tga");
   obj[174].visible = obj[172].visible;
   obj[174].prog = obj[172].prog;
   obj[174].tr.translation = vec3(2.0, 2.0, largMaison/2-0.1);
-}
-
-void init_menu(){
-  mesh m;
-
-  //coordonnees geometriques des sommets
-  vec3 p0=vec3(5, 5, -1);
-  vec3 p1=vec3(-5,5,-1);
-  vec3 p2=vec3(-5,-5,-1);
-  vec3 p3=vec3(5,-5,-1);
-
-  //normales pour chaque sommet
-  vec3 n0=vec3(1.0f,0.0f,0.0f);
-  vec3 n1=n0;
-  vec3 n2=n0;
-  vec3 n3=n0;
-
-  //couleur pour chaque sommet
-  vec3 c0=vec3(1.0f,1.0f,1.0f);
-  vec3 c1=c0;
-  vec3 c2=c0;
-  vec3 c3=c0;
-
-  //texture du sommet
-  vec2 t0=vec2(0.0f,0.0f);
-  vec2 t1=vec2(1.0f,0.0f);
-  vec2 t2=vec2(1.0f,1.0f);
-  vec2 t3=vec2(0.0f,1.0f);
-
-  vertex_opengl v0=vertex_opengl(p0,n0,c0,t0);
-  vertex_opengl v1=vertex_opengl(p1,n1,c1,t1);
-  vertex_opengl v2=vertex_opengl(p2,n2,c2,t2);
-  vertex_opengl v3=vertex_opengl(p3,n3,c3,t3);
-
-  m.vertex = {v0, v1, v2, v3};
-
-  //indice des triangles
-  triangle_index tri0=triangle_index(0,1,2);
-  triangle_index tri1=triangle_index(0,2,3);  
-  m.connectivity = {tri0, tri1};
-
-  menu[0].nb_triangle = 2;
-  menu[0].vao = upload_mesh_to_gpu(m);
-
-  menu[0].visible = false;
-  menu[0].prog = shader_program_id;
 }
