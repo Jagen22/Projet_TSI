@@ -24,7 +24,7 @@ int Cursor_Upe = 600;
 float dL=0.1f;
 camera cam;
 
-const int nb_obj = 178;
+const int nb_obj = 181;
 objet3d obj[nb_obj];
 
 const int nb_text = 2;
@@ -710,6 +710,73 @@ void init_model_3()
   obj[3].prog = obj[2].prog;
 
   obj[3].tr.translation = vec3(2.5, -0.5, -14.25);
+
+  m = load_obj_file("data/Gramophone/table.obj");
+
+  // Affecte une transformation sur les sommets du maillage
+  s = 0.75f;
+  transform = mat4(   s, 0.0f, 0.0f, 0.0f,
+      0.0f,    s, 0.0f, 0.50f,
+      0.0f, 0.0f,   s , 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f);
+  apply_deformation(&m,transform);
+
+  update_normals(&m);
+  //invert_normals(&m);
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
+
+  obj[178].vao = upload_mesh_to_gpu(m);
+
+  obj[178].nb_triangle = m.connectivity.size();
+  obj[178].texture_id = glhelper::load_texture("data/noirmarbre.tga");
+
+  obj[178].visible = true;
+  obj[178].prog = shader_program_id;
+
+  obj[178].tr.translation = vec3(-largMaison/2+5, -0.5, 0.0);
+
+  m = load_obj_file("data/Gramophone/gramophone_lecteur.obj");
+
+  // Affecte une transformation sur les sommets du maillage
+  s = 0.25f;
+  transform = mat4(   s, 0.0f, 0.0f, 0.0f,
+      0.0f,    s, 0.0f, 0.50f,
+      0.0f, 0.0f,   s , 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f);
+  apply_deformation(&m,transform);
+
+  update_normals(&m);
+  //invert_normals(&m);
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
+
+  obj[179].vao = upload_mesh_to_gpu(m);
+
+  obj[179].nb_triangle = m.connectivity.size();
+  obj[179].texture_id = glhelper::load_texture("data/acier.tga");
+
+  obj[179].visible = true;
+  obj[179].prog = shader_program_id;
+
+  obj[179].tr.translation = vec3(-largMaison/2+5, 0.8, 0.0);
+
+  m = load_obj_file("data/Gramophone/gramophone_son.obj");
+
+  // Affecte une transformation sur les sommets du maillage
+  apply_deformation(&m,transform);
+
+  update_normals(&m);
+  //invert_normals(&m);
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
+
+  obj[180].vao = upload_mesh_to_gpu(m);
+
+  obj[180].nb_triangle = m.connectivity.size();
+  obj[180].texture_id = glhelper::load_texture("data/dore.tga");
+
+  obj[180].visible = true;
+  obj[180].prog = shader_program_id;
+
+  obj[180].tr.translation = vec3(-largMaison/2+5, 0.8, 0.0);
 
 
   m = load_obj_file("data/Gramophone/Disk.obj");
