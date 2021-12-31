@@ -11,9 +11,9 @@ void main (void)
 {
 
   int ascii_offset = 32;                // ASCII code of 1st char in texture file is 32
-  int width        = 16;                // 16 char per line in texture file
-  float x_tick     = 0.0625f;           // .. so 1/16 char horizontally
-  float y_tick     = 0.1666f;              // And 1/6 char vertically
+  int width        = 30;                // 30 char per line in texture file
+  float x_tick     = 0.0333f;           // .. so 1/30 char horizontally
+  float y_tick     = 0.2f;              // And 1/5 char vertically
 
   int ascii_code      = c;                    			// Current char ASCII value
   int texture_code    = ascii_code - ascii_offset;      	// Current char index in our texture
@@ -24,6 +24,5 @@ void main (void)
 
   color = texture2D(texture, tex_coord);
   if(length(color.xyz) < 0.01)
-  //if(length(color.xyz) > 0.99)
     discard;
 }

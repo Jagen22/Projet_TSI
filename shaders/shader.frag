@@ -72,6 +72,6 @@ void main (void)
   if (lumiereB == 1){
     GREEN = vec4(0.25,0.25,0.75,1.0);
   }
-  color = (ambiant+diffuse)*color_final*(RED+GREEN+BLUE)+specular*RED+specular*GREEN+specular*BLUE+(faisseau*yellow*(ambiant+diffuse)*color_final);
+  color = (ambiant+diffuse)*color_final*(RED+GREEN+BLUE)+specular*(RED+GREEN+BLUE)+(faisseau*yellow*(ambiant+diffuse)*color_final);
   // couleur finale
 }
