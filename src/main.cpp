@@ -24,7 +24,7 @@ int Cursor_Upe = 600;
 float dL=0.1f;
 camera cam;
 
-const int nb_obj = 182;
+const int nb_obj = 187;
 objet3d obj[nb_obj];
 
 const int nb_text = 2;
@@ -38,7 +38,10 @@ int torche = 1;
 int lumiereR = 0;
 int lumiereV = 0;
 int lumiereB = 0;
-bool Disk = false;
+int Disk = 0;
+
+bool Coffre = false;
+bool Animation = false;
 
 int i = 0;
 int k = 0;
@@ -187,7 +190,19 @@ static void keyboard_callback(unsigned char key, int, int)
       text_to_draw[0].visible = !(text_to_draw[0].visible);
       break;
     case 'c':
-      Disk = !(Disk);
+      Disk = 1;
+      break;
+    case 'j':
+      Disk = 2;
+      break;
+    case 'k':
+      Disk = 0;
+      break;
+    case 'o':
+      if (!Animation){
+        Coffre = true;
+        Animation = true;
+      }
       break;
   }
 }
@@ -276,15 +291,31 @@ static void timer_callback(int)
   if (Cursor_Down && cam.tr.rotation_euler.x > -1){
     cam.tr.rotation_euler.x -= angle;
   }
-  if (Disk){
+  if (Disk == 1){
     obj[181].visible = true;
     obj[96].visible = false;
   }
-  if (!Disk){
+  if (Disk == 2){
     obj[181].visible = false;
     obj[96].visible = true;
+    obj[96].tr.translation = vec3(-10.0,1.625,0.0);
+    obj[96].tr.rotation_euler = vec3(0.0,0.0,M_PI/2);
   }
- 
+  if (Disk == 0){
+    obj[181].visible = false;
+    obj[96].visible = true;
+    obj[96].tr.translation = vec3(-3.4,4.225, -14.25);
+    obj[96].tr.rotation_euler = vec3(0.0,0.0,0.0);
+  }
+
+  if (Coffre){
+    obj[184].tr.rotation_euler += vec3(0.1,0.0,0.0);
+    obj[185].tr.rotation_euler += vec3(0.1,0.0,0.0);
+    std::cout << obj[184].tr.rotation_euler << std::endl;
+    if (obj[184].tr.rotation_euler.x> 0){
+      Coffre = false;
+    }
+  }
   //Gestion du saut du personnage
   if (SpaceBar){
     //std::cout << obj[0].tr.translation.y << std::endl;
@@ -558,7 +589,7 @@ GLuint upload_mesh_to_gpu(const mesh& m)
 void init_model_dino()
 {
   // Chargement d'un maillage a partir d'un fichier
-  mesh m = load_obj_file("data/Arms.obj");
+  mesh m = load_obj_file("data/stegosaurus.obj");
 
   // Affecte une transformation sur les sommets du maillage
   float s = 0.55f;
@@ -770,7 +801,7 @@ void init_model_3()
   m = load_obj_file("data/Gramophone/gramophone_lecteur.obj");
 
   // Affecte une transformation sur les sommets du maillage
-  s = 0.25f;
+  s = 0.40f;
   transform = mat4(   s, 0.0f, 0.0f, 0.0f,
       0.0f,    s, 0.0f, 0.50f,
       0.0f, 0.0f,   s , 0.0f,
@@ -789,7 +820,7 @@ void init_model_3()
   obj[179].visible = true;
   obj[179].prog = shader_program_id;
 
-  obj[179].tr.translation = vec3(-largMaison/2+5, 0.8, 0.0);
+  obj[179].tr.translation = vec3(-largMaison/2+5, 0.9, 0.0);
 
   m = load_obj_file("data/Gramophone/gramophone_son.obj");
 
@@ -808,7 +839,7 @@ void init_model_3()
   obj[180].visible = true;
   obj[180].prog = shader_program_id;
 
-  obj[180].tr.translation = vec3(-largMaison/2+5, 0.8, 0.0);
+  obj[180].tr.translation = vec3(-largMaison/2+5, 0.9, 0.0);
 
 
   m = load_obj_file("data/Gramophone/Disk.obj");
@@ -1207,10 +1238,10 @@ void init_model_switch()
   fill_color(&m,vec3(0.5f,0.5f,0.5f));
   obj[172].vao = upload_mesh_to_gpu(m);
   obj[172].nb_triangle = m.connectivity.size();
-  obj[172].texture_id = glhelper::load_texture("data/Switch.tga");
+  obj[172].texture_id = glhelper::load_texture("data/SwitchRed.tga");
   obj[172].visible = true;
   obj[172].prog = shader_program_id;
-  obj[172].tr.translation = vec3(-2.0, 2.0,largMaison/2-0.1);
+  obj[172].tr.translation = vec3(-0.5, 2.0,largMaison/2-0.1);
   
   // fill_color(&m,vec3(1.0f,1.0f,1.0f));
   obj[173].vao = obj[172].vao;
@@ -1227,5 +1258,68 @@ void init_model_switch()
   obj[174].texture_id = glhelper::load_texture("data/SwitchBlue.tga");
   obj[174].visible = obj[172].visible;
   obj[174].prog = obj[172].prog;
-  obj[174].tr.translation = vec3(2.0, 2.0, largMaison/2-0.1);
+  obj[174].tr.translation = vec3(0.5, 2.0, largMaison/2-0.1);
+
+  m = load_obj_file("data/coffre/fondCoffreAcier.obj");
+
+  // Affecte une transformation sur les sommets du maillage
+  s = 0.75f;
+  transform = mat4(   s, 0.0f, 0.0f, 0.0f,
+      0.0f,    s, 0.0f, 0.0f,
+      0.0f, 0.0f,   s , 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f);
+  // coffre 
+  apply_deformation(&m,transform);
+  fill_color(&m,vec3(0.5f,0.5f,0.5f));
+  obj[182].vao = upload_mesh_to_gpu(m);
+  obj[182].nb_triangle = m.connectivity.size();
+  obj[182].texture_id = glhelper::load_texture("data/gris.tga");
+  obj[182].visible = true;
+  obj[182].prog = shader_program_id;
+  obj[182].tr.translation = vec3(0.0, 1.0,largMaison/2-0.65);
+  obj[182].tr.rotation_euler = vec3(0.0,M_PI,0.0);
+
+  m = load_obj_file("data/coffre/fondCoffrebois.obj");
+  apply_deformation(&m,transform);
+  fill_color(&m,vec3(0.5f,0.5f,0.5f));
+  obj[183].vao = upload_mesh_to_gpu(m);
+  obj[183].nb_triangle = m.connectivity.size();
+  obj[183].texture_id = glhelper::load_texture("data/wood.png");
+  obj[183].visible = true;
+  obj[183].prog = shader_program_id;
+  obj[183].tr.translation = obj[182].tr.translation;
+  obj[183].tr.rotation_euler = obj[182].tr.rotation_euler;
+
+  m = load_obj_file("data/coffre/CouvercleCoffre.obj");
+  apply_deformation(&m,transform);
+  fill_color(&m,vec3(0.5f,0.5f,0.5f));
+  obj[184].vao = upload_mesh_to_gpu(m);
+  obj[184].nb_triangle = m.connectivity.size();
+  obj[184].texture_id = glhelper::load_texture("data/dore.tga");
+  obj[184].visible = true;
+  obj[184].prog = shader_program_id;
+  obj[184].tr.translation = obj[182].tr.translation+vec3(0.0,1.72,-0.18);
+  obj[184].tr.rotation_euler = obj[182].tr.rotation_euler+vec3(-1.6,0,0);
+
+  // m = load_obj_file("data/coffre/CouvercleCoffrebois.obj");
+  // apply_deformation(&m,transform);
+  // fill_color(&m,vec3(0.5f,0.5f,0.5f));
+  // obj[185].vao = upload_mesh_to_gpu(m);
+  // obj[185].nb_triangle = m.connectivity.size();
+  // obj[185].texture_id = glhelper::load_texture("data/T_arms_A.tga");
+  // obj[185].visible = true;
+  // obj[185].prog = shader_program_id;
+  // obj[185].tr.translation = obj[182].tr.translation;
+  // obj[185].tr.rotation_euler = obj[182].tr.rotation_euler;
+
+  // m = load_obj_file("data/table.obj");
+  // apply_deformation(&m,transform);
+  // fill_color(&m,vec3(0.5f,0.5f,0.5f));
+  // obj[186].vao = upload_mesh_to_gpu(m);
+  // obj[186].nb_triangle = m.connectivity.size();
+  // obj[186].texture_id = glhelper::load_texture("data/white.tga");
+  // obj[186].visible = true;
+  // obj[186].prog = shader_program_id;
+  // obj[186].tr.translation = obj[182].tr.translation;
+  // obj[186].tr.rotation_euler = obj[182].tr.rotation_euler;
 }
