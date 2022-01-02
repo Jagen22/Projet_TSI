@@ -24,7 +24,7 @@ int Cursor_Upe = 600;
 float dL=0.1f;
 camera cam;
 
-const int nb_obj = 181;
+const int nb_obj = 182;
 objet3d obj[nb_obj];
 
 const int nb_text = 2;
@@ -38,6 +38,7 @@ int torche = 1;
 int lumiereR = 0;
 int lumiereV = 0;
 int lumiereB = 0;
+bool Disk = false;
 
 int i = 0;
 int k = 0;
@@ -122,8 +123,10 @@ static void display_callback()
   cam.tr.rotation_center = cam.tr.translation;
   //glTranslated(cos(cam.tr.rotation_euler.y) , sin(cam.tr.rotation_euler.z) ,0);
   
-  obj[0].tr.translation = cam.tr.translation+vec3(0.0,0.0,5.0);
+  obj[0].tr.translation = cam.tr.translation+vec3(0.0,0.0,0.0);
   obj[0].tr.rotation_euler.y = -cam.tr.rotation_euler.y;  
+  obj[181].tr.translation = obj[0].tr.translation;
+  obj[181].tr.rotation_euler = obj[0].tr.rotation_euler;
 
 
   //Affichage des differents objets
@@ -182,6 +185,9 @@ static void keyboard_callback(unsigned char key, int, int)
       break;
     case 'm':
       text_to_draw[0].visible = !(text_to_draw[0].visible);
+      break;
+    case 'c':
+      Disk = !(Disk);
       break;
   }
 }
@@ -270,7 +276,14 @@ static void timer_callback(int)
   if (Cursor_Down && cam.tr.rotation_euler.x > -1){
     cam.tr.rotation_euler.x -= angle;
   }
-  
+  if (Disk){
+    obj[181].visible = true;
+    obj[96].visible = false;
+  }
+  if (!Disk){
+    obj[181].visible = false;
+    obj[96].visible = true;
+  }
  
   //Gestion du saut du personnage
   if (SpaceBar){
@@ -545,7 +558,7 @@ GLuint upload_mesh_to_gpu(const mesh& m)
 void init_model_dino()
 {
   // Chargement d'un maillage a partir d'un fichier
-  mesh m = load_obj_file("data/stegosaurus.obj");
+  mesh m = load_obj_file("data/Arms.obj");
 
   // Affecte une transformation sur les sommets du maillage
   float s = 0.55f;
@@ -571,6 +584,25 @@ void init_model_dino()
 
   obj[0].tr.translation = cam.tr.translation;
   obj[0].tr.rotation_euler = -1*cam.tr.rotation_euler;
+
+  m = load_obj_file("data/Gramophone/Disk_porte.obj");
+
+  // Centre la rotation du modele 1 autour de son centre de gravite approximatif
+
+  update_normals(&m);
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
+
+  obj[181].vao = upload_mesh_to_gpu(m);
+
+  obj[181].nb_triangle = m.connectivity.size();
+  obj[181].texture_id = glhelper::load_texture("data/black.tga");
+  obj[181].visible = false;
+  obj[181].prog = shader_program_id;
+
+
+  obj[181].tr.translation = obj[0].tr.translation;
+  obj[181].tr.rotation_euler = -1*obj[0].tr.rotation_euler;
+
 
   
 }
