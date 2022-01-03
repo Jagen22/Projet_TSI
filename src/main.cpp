@@ -35,10 +35,30 @@ float angle_y_model_1 = 0.0f;
 float angle_view = 0.0f;
 
 int torche = 1;
-int lumiereR = 0;
-int lumiereV = 0;
-int lumiereB = 0;
+int lumiereR = 1;
+int lumiereV = 1;
+int lumiereB = 1;
 int Disk = 0;
+
+int objselected = 0;
+int objectselec[7] = {2,3,179,182,172,173,174};
+vec3 dimensionsobjects[15] = {
+	vec3 (-2.5f, -4.5f, -0.5f),//2
+	vec3 ( 2.5f,  2.0f,  0.5f),
+	vec3 (-2.5f, -4.5f, -0.5f),//3
+	vec3 ( 2.5f,  2.0f,  0.5f),
+	vec3 (-0.5f, -1.5f, -0.5f),//179
+	vec3 ( 0.5f, 0.5f,  0.5f),
+  vec3 (-1.3f, -1.5f, -0.5f),//182
+	vec3 ( 1.3f, 0.5f,  0.5f),
+  vec3 (-0.12f, -0.25f, -0.05f),//172
+	vec3 ( 0.12f, 0.25f,  0.05f),
+  vec3 (-0.12f, -0.25f, -0.05f),//173
+	vec3 ( 0.12f, 0.25f,  0.05f),
+  vec3 (-0.12f, -0.25f, -0.05f),//174
+	vec3 ( 0.12f, 0.25f,  0.05f),
+  };
+
 
 bool Coffre = false;
 bool Animation = false;
@@ -266,12 +286,39 @@ static void special_callback_stop(int key, int,int)
 
 static void mouse_clic(int button, int state, int x, int y){
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
-      std::cout << "clic"<< std::endl;
-      std::cout << x << std::endl;
-      std::cout << y << std::endl;
+    if (objselected == 2 || objselected == 3 ){
+      if (Disk == 0){
+        Disk = 1;
+      }
+      else if (Disk == 1){
+        Disk = 0;
+      }
+    }
+    if (objselected == 179){
+      if (Disk == 1){
+        Disk = 2;
+      }
+      else if (Disk == 2){
+        Disk = 1;
+      }
+    }
+    if (objselected == 182){
+      if (!Animation){
+        Coffre = true;
+        Animation = true;
+        }
+      }
+    if (objselected == 172){
+      lumiereR = 1-lumiereR;
+    }
+    if (objselected == 173){
+      lumiereV = 1-lumiereV;
+    }
+    if (objselected == 174){
+      lumiereB = 1-lumiereB;
+    }
   }
 }
-
 static void timer_callback(int)
 { 
   glutTimerFunc(25, timer_callback, 0);
@@ -311,7 +358,7 @@ static void timer_callback(int)
   if (Coffre){
     obj[184].tr.rotation_euler += vec3(0.1,0.0,0.0);
     obj[185].tr.rotation_euler += vec3(0.1,0.0,0.0);
-    std::cout << obj[184].tr.rotation_euler << std::endl;
+
     if (obj[184].tr.rotation_euler.x> 0){
       Coffre = false;
     }
@@ -762,7 +809,7 @@ void init_model_3()
   obj[2].visible = true;
   obj[2].prog = shader_program_id;
 
-  obj[2].tr.translation = vec3(-5, -0.5, -14.25);
+  obj[2].tr.translation = vec3(-2.5, -0.5, -14.25);
   
   obj[3].vao = obj[2].vao;
 
@@ -1122,7 +1169,7 @@ bool TestRayOBBIntersection(
 float tMin = 0.0f;
 float tMax = 100000.0f;
 
-vec3 OBBposition_worldspace(ModelMatrix.x, ModelMatrix.y, ModelMatrix.y);
+vec3 OBBposition_worldspace(ModelMatrix.x, ModelMatrix.y, ModelMatrix.z);
 
 vec3 delta = OBBposition_worldspace - ray_origin;
 vec3 xaxis(1,0, 0);
@@ -1158,7 +1205,7 @@ if ( t2 < tMax ) tMax = t2;
 if ( t1 > tMin ) tMin = t1;
 if (tMax < tMin )return false;
 
-vec3 zaxis(0,0, -1);
+vec3 zaxis(0,0, 1);
 e = dot(zaxis, delta);
 f = dot(ray_direction, zaxis);
 
@@ -1178,43 +1225,49 @@ return true;
 }
 
 void fonction_Intersection(){
-	vec3 aabb_min(-2.5f, -1.0f, -0.5f);
-	vec3 aabb_max( 2.5f,  10.0f,  0.5f);
-
-	// The ModelMatrix transforms :
-	// - the mesh to its desired position and orientation
-	// - but also the AABB (defined with aabb_min and aabb_max) into an OBB
-  mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x, 1.0f, 0.0f, 0.0f);
-  mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y-M_PI, 0.0f, 1.0f, 0.0f);
-  mat4 rotation_z = matrice_rotation(cam.tr.rotation_euler.z, 0.0f, 0.0f, 1.0f);
-  mat4 rotation = rotation_z*rotation_y*rotation_x;
-  vec3 posObj ;
-  posObj.x = obj[3].tr.translation.x;
-  posObj.y = 2;
-  posObj.z = obj[3].tr.translation.z;
-	vec3 ModelMatrix = rotation*posObj;
-  vec3 ray_origin = cam.tr.translation ;
-
+  vec3 aabb_min;
+  vec3 aabb_max;
+  if (Animation){
+    objectselec[3] = 174;
+    dimensionsobjects[6] = vec3 (-0.12f, -0.25f, -0.05f);
+	  dimensionsobjects[7] =vec3 ( 0.12f, 0.25f,  0.05f);
+    // std::cout << dimensionsobjects[10] << std::endl;
+    }
   
-  
-  rotation_x = matrice_rotation(cam.tr.rotation_euler.x, 1.0f, 0.0f, 0.0f);
-  rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
-  rotation_z = matrice_rotation(cam.tr.rotation_euler.z, 0.0f, 0.0f, 1.0f);
-  rotation = rotation_z*rotation_y*rotation_x;
-	vec3 ray_direction = rotation*vec3(0,0,1);
-	if ( TestRayOBBIntersection(
-		ray_origin, 
-		ray_direction, 
-		aabb_min, 
-		aabb_max,
-		ModelMatrix)
-	){
-		obj[3].texture_id = glhelper::load_texture("data/grisselected.tga");
-  	//std::cout<< "test2" << std::endl;
-	}
-  else{
-    obj[3].texture_id = glhelper::load_texture("data/gris.tga");
-  	// std::cout<< "test" << std::endl;
+  for (int cptselect = 0; cptselect<=6; cptselect++){
+    aabb_min = dimensionsobjects[2*cptselect];
+    aabb_max = dimensionsobjects[2*cptselect+1];
+    mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
+    mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
+    mat4 rotation = rotation_x*rotation_y;
+    vec3 posObj ;
+    posObj.x = obj[objectselec[cptselect]].tr.translation.x;
+    posObj.y = 2;
+    posObj.z = obj[objectselec[cptselect]].tr.translation.z;
+    vec3 ModelMatrix = posObj;
+    vec3 ray_origin = cam.tr.translation;
+    vec3 ray_direction = rotation*vec3(0,0,1);
+    if ( TestRayOBBIntersection(
+      ray_origin,
+      ray_direction, 
+      aabb_min, 
+      aabb_max,
+      ModelMatrix)
+    ){
+      if ((171 < objectselec[cptselect]) & (objectselec[cptselect] <175)){
+        objselected = objectselec[cptselect];
+      }
+      else {
+        obj[objectselec[cptselect]].texture_id = glhelper::load_texture("data/grisselected.tga");
+        objselected = objectselec[cptselect];
+
+      }
+    }
+    else{
+      if (!((171 < objectselec[cptselect]) & (objectselec[cptselect] <175))){
+        obj[objectselec[cptselect]].texture_id = glhelper::load_texture("data/gris.tga");
+      }
+    }
   }
 }
 
@@ -1241,7 +1294,7 @@ void init_model_switch()
   obj[172].texture_id = glhelper::load_texture("data/SwitchRed.tga");
   obj[172].visible = true;
   obj[172].prog = shader_program_id;
-  obj[172].tr.translation = vec3(-0.5, 2.0,largMaison/2-0.1);
+  obj[172].tr.translation = vec3(-0.7, 2.0,largMaison/2-0.1);
   
   // fill_color(&m,vec3(1.0f,1.0f,1.0f));
   obj[173].vao = obj[172].vao;
@@ -1258,7 +1311,7 @@ void init_model_switch()
   obj[174].texture_id = glhelper::load_texture("data/SwitchBlue.tga");
   obj[174].visible = obj[172].visible;
   obj[174].prog = obj[172].prog;
-  obj[174].tr.translation = vec3(0.5, 2.0, largMaison/2-0.1);
+  obj[174].tr.translation = vec3(0.7, 2.0, largMaison/2-0.1);
 
   m = load_obj_file("data/coffre/fondCoffreAcier.obj");
 
@@ -1273,7 +1326,7 @@ void init_model_switch()
   fill_color(&m,vec3(0.5f,0.5f,0.5f));
   obj[182].vao = upload_mesh_to_gpu(m);
   obj[182].nb_triangle = m.connectivity.size();
-  obj[182].texture_id = glhelper::load_texture("data/gris.tga");
+  obj[182].texture_id = glhelper::load_texture("data/dore.tga");
   obj[182].visible = true;
   obj[182].prog = shader_program_id;
   obj[182].tr.translation = vec3(0.0, 1.0,largMaison/2-0.65);
@@ -1290,7 +1343,7 @@ void init_model_switch()
   obj[183].tr.translation = obj[182].tr.translation;
   obj[183].tr.rotation_euler = obj[182].tr.rotation_euler;
 
-  m = load_obj_file("data/coffre/CouvercleCoffre.obj");
+  m = load_obj_file("data/coffre/CouvercleCoffreAcier.obj");
   apply_deformation(&m,transform);
   fill_color(&m,vec3(0.5f,0.5f,0.5f));
   obj[184].vao = upload_mesh_to_gpu(m);
@@ -1301,16 +1354,16 @@ void init_model_switch()
   obj[184].tr.translation = obj[182].tr.translation+vec3(0.0,1.72,-0.18);
   obj[184].tr.rotation_euler = obj[182].tr.rotation_euler+vec3(-1.6,0,0);
 
-  // m = load_obj_file("data/coffre/CouvercleCoffrebois.obj");
-  // apply_deformation(&m,transform);
-  // fill_color(&m,vec3(0.5f,0.5f,0.5f));
-  // obj[185].vao = upload_mesh_to_gpu(m);
-  // obj[185].nb_triangle = m.connectivity.size();
-  // obj[185].texture_id = glhelper::load_texture("data/T_arms_A.tga");
-  // obj[185].visible = true;
-  // obj[185].prog = shader_program_id;
-  // obj[185].tr.translation = obj[182].tr.translation;
-  // obj[185].tr.rotation_euler = obj[182].tr.rotation_euler;
+  m = load_obj_file("data/coffre/CouvercleCoffrebois.obj");
+  apply_deformation(&m,transform);
+  fill_color(&m,vec3(0.5f,0.5f,0.5f));
+  obj[185].vao = upload_mesh_to_gpu(m);
+  obj[185].nb_triangle = m.connectivity.size();
+  obj[185].texture_id = glhelper::load_texture("data/wood.png");
+  obj[185].visible = true;
+  obj[185].prog = shader_program_id;
+  obj[185].tr.translation = obj[182].tr.translation+vec3(0.0,1.72,-0.18);;
+  obj[185].tr.rotation_euler = obj[182].tr.rotation_euler+vec3(-1.6,0,0);
 
   // m = load_obj_file("data/table.obj");
   // apply_deformation(&m,transform);
