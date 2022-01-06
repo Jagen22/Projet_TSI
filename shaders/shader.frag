@@ -47,15 +47,15 @@ void main (void)
     vec3 d = normalize(lampetorcheposition-coordonnee_3d_locale);
     vec3 r = reflect(d,n);
     vec3 o = normalize(-coordonnee_3d_locale);
-    faisseau = 0.5*pow(clamp(dot(lampetorchedirection,d),0.0,1.0),20.0);
+    faisseau = 0.5*pow(clamp(dot(lampetorchedirection,d),0.0,1.0),17.0);
     float pourcentage;
 
-    pourcentage = 0.7*faisseau;
+    pourcentage = faisseau;
     
     //calcul d'illumination
-    float diffuse  = pourcentage*clamp(dot(n,d),0.0,1.0);
-    float specular = pourcentage*pow(clamp(dot(r,o),0.0,1.0),128.0);
-    float ambiant  = pourcentage;
+    float diffuse  = pourcentage*0.5*clamp(dot(n,d),0.0,1.0);
+    float specular = pourcentage*0.1*pow(clamp(dot(r,o),0.0,1.0),128.0);
+    float ambiant  = pourcentage*0.7;
 
     //recuperation de la texture
     vec4 color_texture = texture2D(texture, vtex);
