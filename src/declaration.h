@@ -92,6 +92,8 @@ void init_model_wall3();
 void init_model_wall4();
 void init_model_lumiere();
 void init_model_switch();
+void Deplacement();
+void init_menu();
 
 
 void draw_obj3d(const objet3d* const obj, camera cam);
