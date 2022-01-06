@@ -13,13 +13,11 @@
 // ISoundEngine *SoundEngine = createIrrKlangDevice();
 
     
-vec2 PosAnc = vec2(300,300);
 //identifiant des shaders
 GLuint shader_program_id;
 GLuint gui_program_id;
 
-int longu = 600;
-int Cursor_Upe = 600;
+int longu = 1000;
 
 float dL=0.1f;
 camera cam;
@@ -27,7 +25,7 @@ camera cam;
 const int nb_obj = 187;
 objet3d obj[nb_obj];
 
-const int nb_text = 2;
+const int nb_text = 10;
 text text_to_draw[nb_text];
 
 const int nb_menu = 1;
@@ -42,6 +40,9 @@ int lumiereR = 1;
 int lumiereV = 1;
 int lumiereB = 1;
 int Disk = 0;
+int numMusic = 0;
+vec3 lastLumiere = vec3(lumiereR,lumiereV,lumiereB);
+
 
 int objselected = 0;
 int objectselec[7] = {2,3,179,182,172,173,174};
@@ -66,13 +67,12 @@ vec3 dimensionsobjects[15] = {
 bool Coffre = false;
 bool Animation = false;
 
-
 int i = 0;
 int k = 0;
 
 float largMaison = 30.0;
 float hautMaison = 20.0;
-int compteur = 0;
+double timer;
 
 bool ActionMenu = false;
 
@@ -98,15 +98,31 @@ static void init()
 
   gui_program_id = glhelper::create_program_from_file("shaders/gui.vert", "shaders/gui.frag"); CHECK_GL_ERROR();
 
-  text_to_draw[0].value = "Music 1";
-  text_to_draw[0].bottomLeft = vec2(-0.2, 0.5);
-  text_to_draw[0].topRight = vec2(0.2, 1);
+  textes();
+}
+
+void textes(){
+
+  text_to_draw[0].value = "Choose Music";
+  text_to_draw[0].bottomLeft = vec2(-0.4, 0.7);
+  text_to_draw[0].topRight = vec2(0.4, 1.7);
+  text_to_draw[0].visible = false;
   init_text(text_to_draw);
 
-  text_to_draw[1]=text_to_draw[0];
-  text_to_draw[1].value = "Music 2";
-  text_to_draw[1].bottomLeft.y = 0.0f;
-  text_to_draw[1].topRight.y = 0.5f;
+  int itxt = 0;
+
+  for(int xtxt = 0; xtxt < (nb_text-1)/3; ++xtxt){
+    for(int ytxt = 0; ytxt < (nb_text-1)/3; ++ytxt){
+    itxt++;
+    char c = '0'+itxt;
+    text_to_draw[itxt]=text_to_draw[0];
+    text_to_draw[itxt].value = "Music ";
+    text_to_draw[itxt].value += c;
+    text_to_draw[itxt].bottomLeft = vec2(-0.8 + ytxt*0.6, 0.2 - xtxt*0.5);
+    text_to_draw[itxt].topRight = vec2(-0.4 +  ytxt*0.6, 0.7 - xtxt*0.5);
+    text_to_draw[itxt].visible = false;
+    }
+  }
 }
 
 static void display_callback()
@@ -116,35 +132,59 @@ static void display_callback()
   
 
   if(ActionMenu){
-
-    menu[0].visible = true;
-    menu[0].tr.translation = cam.tr.translation;
-    menu[0].tr.rotation_euler.y = -cam.tr.rotation_euler.y;
-    cam.tr.rotation_euler.x = 0;
-    menu[0].tr.rotation_euler.x = 0;
+    DisplayMenu();
   }
   else{
-    menu[0].visible = false;
+    StopDisplayMenu();
     Deplacement();
   }
 
 
   //Affichage des differents objets
-  for(int i = 0; i < nb_obj; ++i){
+  for(i = 0; i < nb_obj; ++i){
     draw_obj3d(obj + i, cam);
   }
 
-  for(int i = 0; i < nb_menu; ++i){
+  for(i = 0; i < nb_menu; ++i){
     draw_obj3d(menu + i, cam);
   }
 
-  for(int i = 0; i < nb_text; ++i){
+  for(i = 0; i < nb_text; ++i){
     draw_text(text_to_draw + i);
   }
 
   fonction_Intersection();
 
   glutSwapBuffers();
+}
+
+
+void DisplayMenu(){
+  glutSetCursor(GLUT_CURSOR_RIGHT_ARROW);
+  menu[0].visible = true;
+  obj[0].visible = false;
+  obj[181].visible = false;
+  lumiereR = 1;
+  lumiereV = 1;
+  lumiereB = 1;
+  menu[0].tr.translation = cam.tr.translation;
+  menu[0].tr.rotation_euler.y = -cam.tr.rotation_euler.y;
+  cam.tr.rotation_euler.x = 0;
+  menu[0].tr.rotation_euler.x = 0;
+
+}
+
+void StopDisplayMenu(){
+  glutSetCursor(GLUT_CURSOR_NONE);
+  glutWarpPointer(longu/2,longu/2);
+  lumiereR = lastLumiere.x;
+  lumiereV = lastLumiere.y;
+  lumiereB = lastLumiere.z;
+  menu[0].visible = false;
+  obj[0].visible = true;
+  for(int itxt = 0; itxt < nb_text; ++itxt){
+    text_to_draw[itxt].visible = false;
+  }
 }
 
 void Deplacement(){
@@ -186,9 +226,13 @@ void Deplacement(){
   }
 
   cam.tr.rotation_center = cam.tr.translation;
-  //glTranslated(cos(cam.tr.rotation_euler.y) , sin(cam.tr.rotation_euler.z) ,0);
   
-  obj[0].tr.translation = cam.tr.translation+vec3(0.0,0.0,0.0);
+  timer += 0.05;
+  if (timer >2*M_PI){
+    timer = 0;
+  }
+
+  obj[0].tr.translation = cam.tr.translation+vec3(0.0,(float)0.01*cos(timer),0.0);
   obj[0].tr.rotation_euler.y = -cam.tr.rotation_euler.y;
   obj[181].tr.translation = obj[0].tr.translation;
   obj[181].tr.rotation_euler = obj[0].tr.rotation_euler;
@@ -226,12 +270,15 @@ static void keyboard_callback(unsigned char key, int, int)
       break;
     case 'r':
       lumiereR = 1-lumiereR;
+      lastLumiere.x = lumiereR;
       break;
     case 'v':
       lumiereV = 1-lumiereV;
+      lastLumiere.y = lumiereV;
       break;
     case 'b':
       lumiereB = 1-lumiereB;
+      lastLumiere.z = lumiereB;
       break;
     case 'm':
       text_to_draw[0].visible = !(text_to_draw[0].visible);
@@ -317,36 +364,92 @@ static void special_callback_stop(int key, int,int)
 
 static void mouse_clic(int button, int state, int x, int y){
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
-    if (objselected == 2 || objselected == 3 ){
-      if (Disk == 0){
-        Disk = 1;
-      }
-      else if (Disk == 1){
-        Disk = 0;
-      }
-    }
-    if (objselected == 179){
-      if (Disk == 1){
-        Disk = 2;
-      }
-      else if (Disk == 2){
-        Disk = 1;
-      }
-    }
-    if (objselected == 182){
-      if (!Animation){
-        Coffre = true;
-        Animation = true;
+    if (!ActionMenu){
+      if (objselected == 2 || objselected == 3 ){
+        if (Disk == 0){
+          Disk = 1;
+          ActionMenu = !ActionMenu;
+            for(int itxt = 0; itxt < nb_text; ++itxt){
+              text_to_draw[itxt].visible = true;
+            }
+        }
+        else if (Disk == 1){
+          Disk = 0;
         }
       }
-    if (objselected == 172){
-      lumiereR = 1-lumiereR;
+      if (objselected == 179){
+        if (Disk == 1){
+          std::cout << "Vous deposez le disque ";
+          std::cout << numMusic << std::endl;
+          Disk = 2;
+        }
+        else if (Disk == 2){
+          Disk = 1;
+        }
+      }
+      if (objselected == 182){
+        if (!Animation){
+          Coffre = true;
+          Animation = true;
+          }
+        }
+
+      if (objselected == 172){
+        lumiereR = 1-lumiereR;
+        lastLumiere.x = lumiereR;
+      }
+      if (objselected == 173){
+        lumiereV = 1-lumiereV;
+        lastLumiere.y = lumiereV;
+      }
+      if (objselected == 174){
+        lumiereB = 1-lumiereB;
+        lastLumiere.z = lumiereB;
+      }
     }
-    if (objselected == 173){
-      lumiereV = 1-lumiereV;
-    }
-    if (objselected == 174){
-      lumiereB = 1-lumiereB;
+    else{
+      if (x>100 && x<300){
+        if (y>200 && y<400){
+        numMusic = 1;
+        ActionMenu = !ActionMenu;
+        }
+        else if (y>450 && y<650){
+        numMusic = 4;
+        ActionMenu = !ActionMenu;
+        }
+        else if (y>700 && y<900){
+        numMusic = 7;
+        ActionMenu = !ActionMenu;
+        }
+      }
+      else if (x>400 && x<600){
+        if (y>200 && y<400){
+        numMusic = 2;
+        ActionMenu = !ActionMenu;
+        }
+        else if (y>450 && y<650){
+        numMusic = 5;
+        ActionMenu = !ActionMenu;
+        }
+        else if (y>700 && y<900){
+        numMusic = 8;
+        ActionMenu = !ActionMenu;
+        }
+      }
+      else if (x>700 && x<900){
+        if (y>200 && y<400){
+        numMusic = 3;
+        ActionMenu = !ActionMenu;
+        }
+        else if (y>450 && y<650){
+        numMusic = 6;
+        ActionMenu = !ActionMenu;
+        }
+        else if (y>700 && y<900){
+        numMusic = 9;
+        ActionMenu = !ActionMenu;
+        }
+      }
     }
   }
 }
@@ -423,64 +526,35 @@ static void timer_callback(int)
 
 static void mouse_move(int xmous,int ymous){
   vec2 posACT = vec2(xmous,ymous);
-  
-  int limminrectMousse = 15;
-  int limmaxrectMousse = 30;
-  Cursor_Right = false;
-  Cursor_Left = false;
-  Cursor_Up = false;
-  Cursor_Down = false;
-  // if (posACT.x > longu/2+limminrectMousse){
-  //   if (posACT.x > Cursor_Upe/2+limmaxrectMousse){
-  //     glutWarpPointer(Cursor_Upe/2+limmaxrectMousse,posACT.y);
-  //   }
-  //   Cursor_Right = true;
-  // }
-  // if (posACT.x < longu/2-limminrectMousse){
-  //   if (posACT.x < Cursor_Upe/2-limmaxrectMousse){
-  //     glutWarpPointer(Cursor_Upe/2-limmaxrectMousse,posACT.y);
-  //   }
-  //   Cursor_Left = true;
-  // }
-  // if (posACT.y > Cursor_Upe/2+limminrectMousse){
-  //   if (posACT.y > Cursor_Upe/2+limmaxrectMousse){
-  //     glutWarpPointer(posACT.x,Cursor_Upe/2+limmaxrectMousse);
-  //   }
-  //   Cursor_Up = true;
-  // }
-  // if (posACT.y < Cursor_Upe/2-limminrectMousse){
-  //   if (posACT.y < Cursor_Upe/2-limmaxrectMousse){
-  //     glutWarpPointer(posACT.x,Cursor_Upe/2-limmaxrectMousse);
-  //   }
-  //   Cursor_Down = true;
-  // }
-  int delta;
-  if (posACT.x > 300){
-    delta = posACT.x-300;
-    cam.tr.rotation_euler.y += (M_PI/300)*delta;
-    glutWarpPointer(300,300);
-    // Cursor_Right = true;
-  }
-  if (posACT.x < 300){
-    delta = 300-posACT.x;
-    cam.tr.rotation_euler.y -= (M_PI/300)*delta;
-    glutWarpPointer(300,300);
-  }
-  if (posACT.y > 300){
-    delta = posACT.y-300;
-    cam.tr.rotation_euler.x += (M_PI/300)*delta;
-    if (cam.tr.rotation_euler.x > 0.5){
-      cam.tr.rotation_euler.x = 0.5;
+  if(!ActionMenu){
+    int delta;
+    if (posACT.x > longu/2){
+      delta = posACT.x-longu/2;
+      cam.tr.rotation_euler.y += (M_PI/longu/2)*delta;
+      glutWarpPointer(longu/2,longu/2);
+      // Cursor_Right = true;
     }
-    glutWarpPointer(300,300);
-  }
-  if (posACT.y < 300){
-    delta = 300-posACT.y;
-    cam.tr.rotation_euler.x -= (M_PI/300)*delta;
-    if (cam.tr.rotation_euler.x < -0.9){
-      cam.tr.rotation_euler.x = -0.9;
+    if (posACT.x < longu/2){
+      delta = longu/2-posACT.x;
+      cam.tr.rotation_euler.y -= (M_PI/longu/2)*delta;
+      glutWarpPointer(longu/2,longu/2);
     }
-    glutWarpPointer(300,300);
+    if (posACT.y > longu/2){
+      delta = posACT.y-longu/2;
+      cam.tr.rotation_euler.x += (M_PI/longu/2)*delta;
+      if (cam.tr.rotation_euler.x > 0.5){
+        cam.tr.rotation_euler.x = 0.5;
+      }
+      glutWarpPointer(longu/2,longu/2);
+    }
+    if (posACT.y < longu/2){
+      delta = longu/2-posACT.y;
+      cam.tr.rotation_euler.x -= (M_PI/longu/2)*delta;
+      if (cam.tr.rotation_euler.x < -0.9){
+        cam.tr.rotation_euler.x = -0.9;
+      }
+      glutWarpPointer(longu/2,longu/2);
+    }
   }
 }
 
@@ -490,11 +564,11 @@ int main(int argc, char** argv)
   //SoundEngine->play2D("data/Sabaton.mp3", true);
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | MACOSX_COMPATIBILITY);
-  glutInitWindowSize(600, 600);
+  glutInitWindowSize(longu, longu);
   
   glutCreateWindow("OpenGL");
-  glutSetCursor(GLUT_CURSOR_NONE) ; 
-  glutWarpPointer(longu/2,Cursor_Upe/2);
+  glutSetCursor(GLUT_CURSOR_NONE); 
+  glutWarpPointer(longu/2,longu/2);
 
   glutDisplayFunc(display_callback);
   glutKeyboardFunc(keyboard_callback);
@@ -1350,7 +1424,7 @@ void init_model_switch()
   obj[173].vao = obj[172].vao;
   obj[173].nb_triangle = obj[172].nb_triangle;
   obj[173].texture_id = glhelper::load_texture("data/SwitchGreen.tga");
-  obj[173].tr.rotation_euler = vec3(0.0,M_PI/2,0.0);
+  //obj[173].tr.rotation_euler = vec3(0.0,M_PI/2,0.0);
   obj[173].visible = obj[172].visible;
   obj[173].prog = obj[172].prog;
   obj[173].tr.translation = vec3(0.0, 2.0, largMaison/2-0.1);

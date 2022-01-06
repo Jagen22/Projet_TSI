@@ -92,6 +92,9 @@ void init_model_wall3();
 void init_model_wall4();
 void init_model_lumiere();
 void init_model_switch();
+void textes();
+void DisplayMenu();
+void StopDisplayMenu();
 void Deplacement();
 void init_menu();
 
