@@ -7,6 +7,7 @@
 
 #include "declaration.h"
 #include <bits/stdc++.h>
+#include <algorithm>  
 // #include <irrKlang.h>
 
 // using namespace irrklang;
@@ -54,9 +55,9 @@ vec3 dimensionsobjects[15] = {
   vec3 (-0.12f, -0.25f, -0.05f),//172
 	vec3 ( 0.12f, 0.25f,  0.05f),
   vec3 (-0.12f, -0.25f, -0.05f),//173
-	vec3 ( 0.12f, 0.25f,  0.05f),
+	vec3 ( 0.24f, 0.25f,  0.05f),
   vec3 (-0.12f, -0.25f, -0.05f),//174
-	vec3 ( 0.12f, 0.25f,  0.05f),
+	vec3 ( 0.24f, 0.25f,  0.05f),
   };
 
 
@@ -407,35 +408,64 @@ static void timer_callback(int)
 
 static void mouse_move(int xmous,int ymous){
   vec2 posACT = vec2(xmous,ymous);
+  
   int limminrectMousse = 15;
   int limmaxrectMousse = 30;
   Cursor_Right = false;
   Cursor_Left = false;
   Cursor_Up = false;
   Cursor_Down = false;
-  if (posACT.x > longu/2+limminrectMousse){
-    if (posACT.x > Cursor_Upe/2+limmaxrectMousse){
-      glutWarpPointer(Cursor_Upe/2+limmaxrectMousse,posACT.y);
-    }
-    Cursor_Right = true;
+  // if (posACT.x > longu/2+limminrectMousse){
+  //   if (posACT.x > Cursor_Upe/2+limmaxrectMousse){
+  //     glutWarpPointer(Cursor_Upe/2+limmaxrectMousse,posACT.y);
+  //   }
+  //   Cursor_Right = true;
+  // }
+  // if (posACT.x < longu/2-limminrectMousse){
+  //   if (posACT.x < Cursor_Upe/2-limmaxrectMousse){
+  //     glutWarpPointer(Cursor_Upe/2-limmaxrectMousse,posACT.y);
+  //   }
+  //   Cursor_Left = true;
+  // }
+  // if (posACT.y > Cursor_Upe/2+limminrectMousse){
+  //   if (posACT.y > Cursor_Upe/2+limmaxrectMousse){
+  //     glutWarpPointer(posACT.x,Cursor_Upe/2+limmaxrectMousse);
+  //   }
+  //   Cursor_Up = true;
+  // }
+  // if (posACT.y < Cursor_Upe/2-limminrectMousse){
+  //   if (posACT.y < Cursor_Upe/2-limmaxrectMousse){
+  //     glutWarpPointer(posACT.x,Cursor_Upe/2-limmaxrectMousse);
+  //   }
+  //   Cursor_Down = true;
+  // }
+  int delta;
+  if (posACT.x > 300){
+    delta = posACT.x-300;
+    cam.tr.rotation_euler.y += (M_PI/300)*delta;
+    glutWarpPointer(300,300);
+    // Cursor_Right = true;
   }
-  if (posACT.x < longu/2-limminrectMousse){
-    if (posACT.x < Cursor_Upe/2-limmaxrectMousse){
-      glutWarpPointer(Cursor_Upe/2-limmaxrectMousse,posACT.y);
-    }
-    Cursor_Left = true;
+  if (posACT.x < 300){
+    delta = 300-posACT.x;
+    cam.tr.rotation_euler.y -= (M_PI/300)*delta;
+    glutWarpPointer(300,300);
   }
-  if (posACT.y > Cursor_Upe/2+limminrectMousse){
-    if (posACT.y > Cursor_Upe/2+limmaxrectMousse){
-      glutWarpPointer(posACT.x,Cursor_Upe/2+limmaxrectMousse);
+  if (posACT.y > 300){
+    delta = posACT.y-300;
+    cam.tr.rotation_euler.x += (M_PI/300)*delta;
+    if (cam.tr.rotation_euler.x > 0.5){
+      cam.tr.rotation_euler.x = 0.5;
     }
-    Cursor_Up = true;
+    glutWarpPointer(300,300);
   }
-  if (posACT.y < Cursor_Upe/2-limminrectMousse){
-    if (posACT.y < Cursor_Upe/2-limmaxrectMousse){
-      glutWarpPointer(posACT.x,Cursor_Upe/2-limmaxrectMousse);
+  if (posACT.y < 300){
+    delta = 300-posACT.y;
+    cam.tr.rotation_euler.x -= (M_PI/300)*delta;
+    if (cam.tr.rotation_euler.x < -0.9){
+      cam.tr.rotation_euler.x = -0.9;
     }
-    Cursor_Down = true;
+    glutWarpPointer(300,300);
   }
 }
 
@@ -447,7 +477,7 @@ int main(int argc, char** argv)
   glutInitWindowSize(600, 600);
   
   glutCreateWindow("OpenGL");
-  // glutSetCursor(GLUT_CURSOR_NONE) ; 
+  glutSetCursor(GLUT_CURSOR_NONE) ; 
   glutWarpPointer(longu/2,Cursor_Upe/2);
 
   glutDisplayFunc(display_callback);
@@ -678,7 +708,7 @@ void init_model_dino()
   obj[181].prog = shader_program_id;
 
 
-  obj[181].tr.translation = obj[0].tr.translation;
+  obj[181].tr.translation = obj[0].tr.translation-vec3(0.0,0.0,0.5);
   obj[181].tr.rotation_euler = -1*obj[0].tr.rotation_euler;
 
 
@@ -1230,7 +1260,7 @@ void fonction_Intersection(){
   if (Animation){
     objectselec[3] = 174;
     dimensionsobjects[6] = vec3 (-0.12f, -0.25f, -0.05f);
-	  dimensionsobjects[7] =vec3 ( 0.12f, 0.25f,  0.05f);
+	  dimensionsobjects[7] =vec3 ( 0.24f, 0.25f,  0.05f);
     // std::cout << dimensionsobjects[10] << std::endl;
     }
   
@@ -1256,16 +1286,19 @@ void fonction_Intersection(){
     ){
       if ((171 < objectselec[cptselect]) & (objectselec[cptselect] <175)){
         objselected = objectselec[cptselect];
+        return;
       }
       else {
         obj[objectselec[cptselect]].texture_id = glhelper::load_texture("data/grisselected.tga");
         objselected = objectselec[cptselect];
+        return;
 
       }
     }
     else{
       if (!((171 < objectselec[cptselect]) & (objectselec[cptselect] <175))){
         obj[objectselec[cptselect]].texture_id = glhelper::load_texture("data/gris.tga");
+        objselected = 0;
       }
     }
   }
