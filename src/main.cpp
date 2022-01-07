@@ -22,7 +22,7 @@ int longu = 1000;
 float dL=0.1f;
 camera cam;
 
-const int nb_obj = 187;
+const int nb_obj = 189;
 objet3d obj[nb_obj];
 
 const int nb_text = 16;
@@ -36,9 +36,10 @@ float angle_y_model_1 = 0.0f;
 float angle_view = 0.0f;
 
 int torche = 1;
-int lumiereR = 0;
-int lumiereV = 0;
-int lumiereB = 0;
+int lumiereR = 1;
+int lumiereV = 1;
+int lumiereB = 1;
+
 vec3 lastLumiere = vec3(lumiereR,lumiereV,lumiereB);
 
 int Disk = 0;
@@ -83,6 +84,7 @@ float hautMaison = 20.0;
 double timer;
 
 bool ActionMenu = false;
+bool GodMode = true;
 
 static void init()
 {
@@ -92,9 +94,9 @@ static void init()
   // cam.tr.translation = vec3(0.0f, 20.0f, 0.0f);
   // cam.tr.rotation_center = vec3(0.0f, 20.0f, 0.0f);
   // cam.tr.rotation_euler = vec3(M_PI/2., 0.0f, 0.0f);
-  init_model_dino();
+  init_model_hands();
   init_model_ground();
-  init_model_3();
+  init_model_ObjetsFixes();
   init_model_wall1();
   init_model_wall2();
   init_model_wall3();
@@ -241,34 +243,56 @@ void Deplacement(){
   mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
   mat4 rotation = rotation_x*rotation_y;
 
-  //Si une touche de deplacement est activee, on teste si la future position depasse les limites de la map
-  //Dans le cas ou le deplacement est valide, on deplace la camera de dL dans la direction d'orientation de la camera
-  //On resalise ensuite un test : dans le cas où on ne saute pas on force la camera en y=2
-  if (Move_Up){
-    if (abs(cam.tr.translation.x + (rotation*vec3(0,0,dL)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z + (rotation*vec3(0,0,dL)).z) < largMaison/2 - 1)){
-      cam.tr.translation += rotation*vec3(0,0,dL);
-      if (!SpaceBar){cam.tr.translation.y = 2;}
+  if(GodMode){
+    if (Move_Up){
+        cam.tr.translation += rotation*vec3(0,0,dL);
+        if (!SpaceBar){cam.tr.translation.y = 2;}
+    }
+    if(Move_Down){
+        cam.tr.translation -= rotation*vec3(0,0,dL);
+        if (!SpaceBar){cam.tr.translation.y = 2;}
     }
 
-  }
-  if(Move_Down){
-    if (abs(cam.tr.translation.x - (rotation*vec3(0,0,dL)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z - (rotation*vec3(0,0,dL)).z) < largMaison/2 - 1)){
-      cam.tr.translation -= rotation*vec3(0,0,dL);
-      if (!SpaceBar){cam.tr.translation.y = 2;}
+    if(Move_Left){
+        cam.tr.translation -= rotation*vec3(dL,0,0);
+        if (!SpaceBar){cam.tr.translation.y = 2;}
+    }
+
+    if(Move_Right){
+        cam.tr.translation += rotation*vec3(dL,0,0);
+        if (!SpaceBar){cam.tr.translation.y = 2;}
     }
   }
+  else{
+    //Si une touche de deplacement est activee, on teste si la future position depasse les limites de la map
+    //Dans le cas ou le deplacement est valide, on deplace la camera de dL dans la direction d'orientation de la camera
+    //On resalise ensuite un test : dans le cas où on ne saute pas on force la camera en y=2
+    if (Move_Up){
+      if (abs(cam.tr.translation.x + (rotation*vec3(0,0,dL)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z + (rotation*vec3(0,0,dL)).z) < largMaison/2 - 1)){
+        cam.tr.translation += rotation*vec3(0,0,dL);
+        if (!SpaceBar){cam.tr.translation.y = 2;}
+      }
 
-  if(Move_Left){
-    if (abs(cam.tr.translation.x - (rotation*vec3(dL,0,0)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z - (rotation*vec3(dL,0,0)).z) < largMaison/2 - 1)){
-      cam.tr.translation -= rotation*vec3(dL,0,0);
-      if (!SpaceBar){cam.tr.translation.y = 2;}
     }
-  }
+    if(Move_Down){
+      if (abs(cam.tr.translation.x - (rotation*vec3(0,0,dL)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z - (rotation*vec3(0,0,dL)).z) < largMaison/2 - 1)){
+        cam.tr.translation -= rotation*vec3(0,0,dL);
+        if (!SpaceBar){cam.tr.translation.y = 2;}
+      }
+    }
 
-  if(Move_Right){
-    if (abs(cam.tr.translation.x + (rotation*vec3(dL,0,0)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z + (rotation*vec3(dL,0,0)).z) < largMaison/2 - 1)){
-      cam.tr.translation += rotation*vec3(dL,0,0);
-      if (!SpaceBar){cam.tr.translation.y = 2;}
+    if(Move_Left){
+      if (abs(cam.tr.translation.x - (rotation*vec3(dL,0,0)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z - (rotation*vec3(dL,0,0)).z) < largMaison/2 - 1)){
+        cam.tr.translation -= rotation*vec3(dL,0,0);
+        if (!SpaceBar){cam.tr.translation.y = 2;}
+      }
+    }
+
+    if(Move_Right){
+      if (abs(cam.tr.translation.x + (rotation*vec3(dL,0,0)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z + (rotation*vec3(dL,0,0)).z) < largMaison/2 - 1)){
+        cam.tr.translation += rotation*vec3(dL,0,0);
+        if (!SpaceBar){cam.tr.translation.y = 2;}
+      }
     }
   }
 
@@ -414,11 +438,12 @@ static void mouse_clic(int button, int state, int x, int y){
           text_to_draw[itxt].visible = true;
         }
         MenuCodeCoffre = true;
-        // if (!Animation && CodeCoffre){
-        //   Coffre = true;
-        //   Animation = true;
-        //   }
-        }
+      }
+
+      // if (objselected == 188){
+      //   ActionMenu = !ActionMenu;
+      //   menu[0].texture_id = glhelper::load_texture("data/menuChess.tga");
+      // }
 
       if (objselected == 172){
         lumiereR = 1-lumiereR;
@@ -816,7 +841,7 @@ GLuint upload_mesh_to_gpu(const mesh& m)
   return vao;
 }
 
-void init_model_dino()
+void init_model_hands()
 {
   // Chargement d'un maillage a partir d'un fichier
   mesh m = load_obj_file("data/stegosaurus.obj");
@@ -961,18 +986,15 @@ void init_model_ground()
 
   obj[1].nb_triangle = 2;
   obj[1].vao = upload_mesh_to_gpu(m);
-
   obj[1].texture_id = glhelper::load_texture("data/ground1.tga");
-
   obj[1].visible = true;
   obj[1].prog = shader_program_id;
 }
 
-void init_model_3()
+void init_model_ObjetsFixes()
 {
   // Chargement d'un maillage a partir d'un fichier
   mesh m = load_obj_file("data/Gramophone/etagere.obj");
-
   // Affecte une transformation sur les sommets du maillage
   float s = 0.25f;
   mat4 transform = mat4(   s, 0.0f, 0.0f, 0.0f,
@@ -986,27 +1008,21 @@ void init_model_3()
   fill_color(&m,vec3(1.0f,1.0f,1.0f));
 
   obj[2].vao = upload_mesh_to_gpu(m);
-
   obj[2].nb_triangle = m.connectivity.size();
   obj[2].texture_id = glhelper::load_texture("data/gris.tga");
-
   obj[2].visible = true;
   obj[2].prog = shader_program_id;
-
   obj[2].tr.translation = vec3(-2.5, -0.5, -14.25);
 
   obj[3].vao = obj[2].vao;
-
   obj[3].nb_triangle = obj[2].nb_triangle;
   obj[3].texture_id = obj[2].texture_id;
-
   obj[3].visible = obj[2].visible;
   obj[3].prog = obj[2].prog;
-
   obj[3].tr.translation = vec3(2.5, -0.5, -14.25);
 
-  m = load_obj_file("data/Gramophone/table.obj");
 
+  m = load_obj_file("data/Gramophone/table.obj");
   // Affecte une transformation sur les sommets du maillage
   s = 0.75f;
   transform = mat4(   s, 0.0f, 0.0f, 0.0f,
@@ -1020,17 +1036,56 @@ void init_model_3()
   fill_color(&m,vec3(1.0f,1.0f,1.0f));
 
   obj[178].vao = upload_mesh_to_gpu(m);
-
   obj[178].nb_triangle = m.connectivity.size();
   obj[178].texture_id = glhelper::load_texture("data/noirmarbre.tga");
-
   obj[178].visible = true;
   obj[178].prog = shader_program_id;
-
   obj[178].tr.translation = vec3(-largMaison/2+5, -0.5, 0.0);
 
-  m = load_obj_file("data/Gramophone/gramophone_lecteur.obj");
 
+  m = load_obj_file("data/Gramophone/table.obj");
+  // Affecte une transformation sur les sommets du maillage
+  s = 1.0f;
+  transform = mat4(   s, 0.0f, 0.0f, 0.0f,
+      0.0f,    s, 0.0f, 0.50f,
+      0.0f, 0.0f,   s , 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f);
+  apply_deformation(&m,transform);
+
+  update_normals(&m);
+  //invert_normals(&m);
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
+
+  obj[187].vao=upload_mesh_to_gpu(m);
+  obj[187].nb_triangle = m.connectivity.size();
+  obj[187].texture_id = glhelper::load_texture("data/noirmarbre.tga");
+  obj[187].visible = true;
+  obj[187].prog = shader_program_id;
+  obj[187].tr.translation = vec3(largMaison/2-5, -0.5, 0.0);
+
+
+  m = load_obj_file("data/chessboard/chessboard5.obj");
+  // Affecte une transformation sur les sommets du maillage
+  s = 5.0f;
+  transform = mat4(   s, 0.0f, 0.0f, 0.0f,
+      0.0f,    s, 0.0f, 0.50f,
+      0.0f, 0.0f,   s , 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f);
+  apply_deformation(&m,transform);
+
+  update_normals(&m);
+  //invert_normals(&m);
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
+
+  obj[188].vao = upload_mesh_to_gpu(m);
+  obj[188].nb_triangle = m.connectivity.size();
+  obj[188].texture_id = glhelper::load_texture("data/acier.tga");
+  obj[188].visible = true;
+  obj[188].prog = shader_program_id;
+  obj[188].tr.translation = vec3(largMaison/2-5, 1.15, 0.0);
+
+
+  m = load_obj_file("data/Gramophone/gramophone_lecteur.obj");
   // Affecte une transformation sur les sommets du maillage
   s = 0.40f;
   transform = mat4(   s, 0.0f, 0.0f, 0.0f,
@@ -1044,17 +1099,14 @@ void init_model_3()
   fill_color(&m,vec3(1.0f,1.0f,1.0f));
 
   obj[179].vao = upload_mesh_to_gpu(m);
-
   obj[179].nb_triangle = m.connectivity.size();
   obj[179].texture_id = glhelper::load_texture("data/acier.tga");
-
   obj[179].visible = true;
   obj[179].prog = shader_program_id;
-
   obj[179].tr.translation = vec3(-largMaison/2+5, 0.9, 0.0);
 
-  m = load_obj_file("data/Gramophone/gramophone_son.obj");
 
+  m = load_obj_file("data/Gramophone/gramophone_son.obj");
   // Affecte une transformation sur les sommets du maillage
   apply_deformation(&m,transform);
 
@@ -1063,17 +1115,16 @@ void init_model_3()
   fill_color(&m,vec3(1.0f,1.0f,1.0f));
 
   obj[180].vao = upload_mesh_to_gpu(m);
-
   obj[180].nb_triangle = m.connectivity.size();
   obj[180].texture_id = glhelper::load_texture("data/dore.tga");
-
   obj[180].visible = true;
   obj[180].prog = shader_program_id;
-
   obj[180].tr.translation = vec3(-largMaison/2+5, 0.9, 0.0);
+
 
   m = load_obj_file("data/Gramophone/Disk.obj");
   fill_color(&m,vec3(1.0f,1.0f,1.0f));
+
   obj[9].vao = upload_mesh_to_gpu(m);
   obj[9].nb_triangle = m.connectivity.size();
   obj[9].visible = true;
@@ -1087,9 +1138,7 @@ void init_model_3()
       obj[(40*k)+i+10].prog = shader_program_id;
       obj[(40*k)+i+10].tr.translation = obj[9].tr.translation+vec3(0.25*i,(k)*1.2,0);
     }
-
   }
-
 }
 
 void init_model_wall1()

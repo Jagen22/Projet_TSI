@@ -82,8 +82,8 @@ void init_text(text *t);
 void draw_text(const text* const t);
 
 void fonction_Intersection();
-void init_model_3();
-void init_model_dino();
+void init_model_ObjetsFixes();
+void init_model_hands();
 void init_model_ground();
 void init_model_ceiling();
 void init_model_wall1();
