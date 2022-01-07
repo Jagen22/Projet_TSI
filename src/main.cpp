@@ -25,7 +25,7 @@ camera cam;
 const int nb_obj = 189;
 objet3d obj[nb_obj];
 
-const int nb_text = 16;
+const int nb_text = 17;
 text text_to_draw[nb_text];
 
 const int nb_menu = 1;
@@ -36,15 +36,16 @@ float angle_y_model_1 = 0.0f;
 float angle_view = 0.0f;
 
 int torche = 1;
-int lumiereR = 1;
-int lumiereV = 1;
-int lumiereB = 1;
+int lumiereR = 0;
+int lumiereV = 0;
+int lumiereB = 0;
 
 vec3 lastLumiere = vec3(lumiereR,lumiereV,lumiereB);
 
 int Disk = 0;
 int numMusic = 0;
 bool MenuCodeCoffre = false;
+bool MenuChess = false;
 
 
 
@@ -84,7 +85,7 @@ float hautMaison = 20.0;
 double timer;
 
 bool ActionMenu = false;
-bool GodMode = true;
+bool GodMode = false;
 
 static void init()
 {
@@ -153,7 +154,16 @@ void textes(){
   text_to_draw[15].bottomLeft = vec2(-0.2, -0.4);
   text_to_draw[15].topRight = vec2(0.15, 0.0);
   text_to_draw[15].visible = false;
+
+  text_to_draw[16]=text_to_draw[0];
+  text_to_draw[16].value = "Retour";
+  text_to_draw[16].bottomLeft = vec2(-0.15, -0.9);
+  text_to_draw[16].topRight = vec2(0.15, -0.5);
+  text_to_draw[16].visible = false;
+
 }
+
+
 
 static void display_callback()
 {
@@ -345,6 +355,17 @@ static void keyboard_callback(unsigned char key, int, int)
         Animation = true;
       }
       break;
+    case 'e':
+      ActionMenu = !ActionMenu;
+      MenuChess = !MenuChess;
+      text_to_draw[16].visible = true;
+      if(lumiereR==0 && lumiereB==0 && lumiereV==1){
+        menu[0].texture_id = glhelper::load_texture("data/menuChessG.tga");
+      }
+      else{
+      menu[0].texture_id = glhelper::load_texture("data/menuChess.tga");
+      }
+    break;
   }
 }
 
@@ -442,7 +463,13 @@ static void mouse_clic(int button, int state, int x, int y){
 
       // if (objselected == 188){
       //   ActionMenu = !ActionMenu;
+      //   MenuChess = true;
+      //   if(lumiereR==0 && lumiereB==0 && lumiereV==1){
+      //     menu[0].texture_id = glhelper::load_texture("data/menuChessG.tga");
+      //   }
+      //   else{
       //   menu[0].texture_id = glhelper::load_texture("data/menuChess.tga");
+      //   }
       // }
 
       if (objselected == 172){
@@ -465,8 +492,20 @@ static void mouse_clic(int button, int state, int x, int y){
       if (MenuCodeCoffre == true){
         OuvertureCoffreInterrupteur(x,y);
       }
-      
+
+      if(MenuChess){
+        ChessBoard(x,y);
+      }
     }
+  }
+}
+
+void ChessBoard(int x, int y){
+  std::cout << x << std::endl;
+  std::cout << y << std::endl;
+  if (x>400 && x<600 && y>900 && y<950){
+    MenuChess = false;
+    ActionMenu = !ActionMenu;
   }
 }
 
@@ -1064,7 +1103,7 @@ void init_model_ObjetsFixes()
   obj[187].tr.translation = vec3(largMaison/2-5, -0.5, 0.0);
 
 
-  m = load_obj_file("data/chessboard/chessboard5.obj");
+  m = load_obj_file("data/chessboard/Final_chessboard.obj");
   // Affecte une transformation sur les sommets du maillage
   s = 5.0f;
   transform = mat4(   s, 0.0f, 0.0f, 0.0f,

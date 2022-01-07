@@ -97,6 +97,7 @@ void ConditionsLumiere();
 void DisplayMenu();
 void StopDisplayMenu();
 void Deplacement();
+void ChessBoard(int, int);
 void OuvertureCoffreInterrupteur(int, int);
 void ChoixMusique(int, int);
 void Ajouter1(int);
