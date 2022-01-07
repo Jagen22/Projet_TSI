@@ -36,14 +36,16 @@ float angle_y_model_1 = 0.0f;
 float angle_view = 0.0f;
 
 int torche = 1;
-int lumiereR = 1;
-int lumiereV = 1;
-int lumiereB = 1;
+int lumiereR = 0;
+int lumiereV = 0;
+int lumiereB = 0;
 vec3 lastLumiere = vec3(lumiereR,lumiereV,lumiereB);
 
 int Disk = 0;
 int numMusic = 0;
 bool MenuCodeCoffre = false;
+
+
 
 int objselected = 0;
 int objectselec[7] = {2,3,179,182,172,173,174};
@@ -67,6 +69,11 @@ vec3 dimensionsobjects[15] = {
 bool CodeCoffre = false;
 bool Coffre = false;
 bool Animation = false;
+
+bool CoffreRouge = false;
+bool CoffreVert = false;
+bool CoffreBleu = false;
+
 
 int i = 0;
 int k = 0;
@@ -180,11 +187,22 @@ static void display_callback()
 }
 
 void ConditionsLumiere(){
-  if (lumiereR==0 && lumiereV==1 && lumiereB==1){
+  if (lumiereR==1 && lumiereV==0 && lumiereB==0){
     obj[7].texture_id = glhelper::load_texture("data/WoodHor4-2.tga");
   }
   else{
     obj[7].texture_id = glhelper::load_texture("data/WoodHor4.tga");
+  }
+
+  if (Disk==2 && numMusic == 6 && lumiereR==0 && lumiereV==0 && lumiereB==1){
+    CoffreBleu = true;
+  }
+
+  if (lumiereR==0 && lumiereV==1 && lumiereB==0){
+    //obj[x].texture_id = glhelper::load_texture("data/chessboard/chessboardG.tga");
+  }
+  else{
+    //obj[x].texture_id = glhelper::load_texture("data/chessboard/chessboard.tga");
   }
 }
 
@@ -297,18 +315,6 @@ static void keyboard_callback(unsigned char key, int, int)
     case 't':
       torche = 1-torche;
       break;
-    case 'r':
-      lumiereR = 1-lumiereR;
-      lastLumiere.x = lumiereR;
-      break;
-    case 'v':
-      lumiereV = 1-lumiereV;
-      lastLumiere.y = lumiereV;
-      break;
-    case 'b':
-      lumiereB = 1-lumiereB;
-      lastLumiere.z = lumiereB;
-      break;
     case 'o':
       if (!Animation){
         Coffre = true;
@@ -321,10 +327,6 @@ static void keyboard_callback(unsigned char key, int, int)
 static void keyboard_callback_stop(unsigned char key, int, int){
     switch (key)
   {
-    case 'e':
-      ActionMenu = !ActionMenu;
-      std::cout << ActionMenu << std::endl;
-      break;
     case 'z':
       Move_Up = false;
       break;
