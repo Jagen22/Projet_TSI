@@ -25,7 +25,7 @@ camera cam;
 const int nb_obj = 187;
 objet3d obj[nb_obj];
 
-const int nb_text = 10;
+const int nb_text = 16;
 text text_to_draw[nb_text];
 
 const int nb_menu = 1;
@@ -39,10 +39,11 @@ int torche = 1;
 int lumiereR = 1;
 int lumiereV = 1;
 int lumiereB = 1;
-int Disk = 0;
-int numMusic = 0;
 vec3 lastLumiere = vec3(lumiereR,lumiereV,lumiereB);
 
+int Disk = 0;
+int numMusic = 0;
+bool MenuCodeCoffre = false;
 
 int objselected = 0;
 int objectselec[7] = {2,3,179,182,172,173,174};
@@ -63,7 +64,7 @@ vec3 dimensionsobjects[15] = {
 	vec3 ( 0.24f, 0.25f,  0.05f),
   };
 
-
+bool CodeCoffre = false;
 bool Coffre = false;
 bool Animation = false;
 
@@ -111,8 +112,8 @@ void textes(){
 
   int itxt = 0;
 
-  for(int xtxt = 0; xtxt < (nb_text-1)/3; ++xtxt){
-    for(int ytxt = 0; ytxt < (nb_text-1)/3; ++ytxt){
+  for(int xtxt = 0; xtxt < 3; ++xtxt){
+    for(int ytxt = 0; ytxt < 3; ++ytxt){
     itxt++;
     char c = '0'+itxt;
     text_to_draw[itxt]=text_to_draw[0];
@@ -123,6 +124,26 @@ void textes(){
     text_to_draw[itxt].visible = false;
     }
   }
+
+  text_to_draw[10]=text_to_draw[0];
+  text_to_draw[10].value = "Entrez le code";
+  text_to_draw[10].bottomLeft = vec2(-0.4, 0.7);
+  text_to_draw[10].topRight = vec2(0.4, 1.7);
+  text_to_draw[10].visible = false;
+
+  for (int itxt = 11; itxt < 15; itxt++){
+  text_to_draw[itxt]=text_to_draw[0];
+  text_to_draw[itxt].value = '0';
+  text_to_draw[itxt].bottomLeft = vec2(-0.5 + (itxt-11)*0.2, -0.1);
+  text_to_draw[itxt].topRight = vec2(-0.3 + (itxt-11)*0.2, 0.1);
+  text_to_draw[itxt].visible = false;
+  }
+  
+  text_to_draw[15]=text_to_draw[0];
+  text_to_draw[15].value = "Retour";
+  text_to_draw[15].bottomLeft = vec2(-0.2, -0.4);
+  text_to_draw[15].topRight = vec2(0.15, 0.0);
+  text_to_draw[15].visible = false;
 }
 
 static void display_callback()
@@ -137,6 +158,7 @@ static void display_callback()
   else{
     StopDisplayMenu();
     Deplacement();
+    ConditionsLumiere();
   }
 
 
@@ -154,10 +176,17 @@ static void display_callback()
   }
 
   fonction_Intersection();
-
   glutSwapBuffers();
 }
 
+void ConditionsLumiere(){
+  if (lumiereR==0 && lumiereV==1 && lumiereB==1){
+    obj[7].texture_id = glhelper::load_texture("data/WoodHor4-2.tga");
+  }
+  else{
+    obj[7].texture_id = glhelper::load_texture("data/WoodHor4.tga");
+  }
+}
 
 void DisplayMenu(){
   glutSetCursor(GLUT_CURSOR_RIGHT_ARROW);
@@ -280,18 +309,6 @@ static void keyboard_callback(unsigned char key, int, int)
       lumiereB = 1-lumiereB;
       lastLumiere.z = lumiereB;
       break;
-    case 'm':
-      text_to_draw[0].visible = !(text_to_draw[0].visible);
-      break;
-    case 'c':
-      Disk = 1;
-      break;
-    case 'j':
-      Disk = 2;
-      break;
-    case 'k':
-      Disk = 0;
-      break;
     case 'o':
       if (!Animation){
         Coffre = true;
@@ -369,9 +386,10 @@ static void mouse_clic(int button, int state, int x, int y){
         if (Disk == 0){
           Disk = 1;
           ActionMenu = !ActionMenu;
-            for(int itxt = 0; itxt < nb_text; ++itxt){
-              text_to_draw[itxt].visible = true;
-            }
+          menu[0].texture_id = glhelper::load_texture("data/testmenu.tga");
+          for(int itxt = 0; itxt < 10; ++itxt){
+            text_to_draw[itxt].visible = true;
+          }
         }
         else if (Disk == 1){
           Disk = 0;
@@ -388,10 +406,16 @@ static void mouse_clic(int button, int state, int x, int y){
         }
       }
       if (objselected == 182){
-        if (!Animation){
-          Coffre = true;
-          Animation = true;
-          }
+        ActionMenu = !ActionMenu;
+        menu[0].texture_id = glhelper::load_texture("data/menuCoffre.tga");
+        for (int itxt = 11; itxt < 16; itxt++){
+          text_to_draw[itxt].visible = true;
+        }
+        MenuCodeCoffre = true;
+        // if (!Animation && CodeCoffre){
+        //   Coffre = true;
+        //   Animation = true;
+        //   }
         }
 
       if (objselected == 172){
@@ -408,50 +432,102 @@ static void mouse_clic(int button, int state, int x, int y){
       }
     }
     else{
-      if (x>100 && x<300){
-        if (y>200 && y<400){
-        numMusic = 1;
-        ActionMenu = !ActionMenu;
-        }
-        else if (y>450 && y<650){
-        numMusic = 4;
-        ActionMenu = !ActionMenu;
-        }
-        else if (y>700 && y<900){
-        numMusic = 7;
-        ActionMenu = !ActionMenu;
-        }
+      if (Disk==1){
+        ChoixMusique(x,y);
       }
-      else if (x>400 && x<600){
-        if (y>200 && y<400){
-        numMusic = 2;
-        ActionMenu = !ActionMenu;
-        }
-        else if (y>450 && y<650){
-        numMusic = 5;
-        ActionMenu = !ActionMenu;
-        }
-        else if (y>700 && y<900){
-        numMusic = 8;
-        ActionMenu = !ActionMenu;
-        }
+      if (MenuCodeCoffre == true){
+        OuvertureCoffreInterrupteur(x,y);
       }
-      else if (x>700 && x<900){
-        if (y>200 && y<400){
-        numMusic = 3;
-        ActionMenu = !ActionMenu;
-        }
-        else if (y>450 && y<650){
-        numMusic = 6;
-        ActionMenu = !ActionMenu;
-        }
-        else if (y>700 && y<900){
-        numMusic = 9;
-        ActionMenu = !ActionMenu;
-        }
-      }
+      
     }
   }
+}
+
+void OuvertureCoffreInterrupteur(int x, int y){
+  if (x>400 && x<600 && y>650 && y<700){
+    MenuCodeCoffre = false;
+    ActionMenu = !ActionMenu;
+  }
+  else if (y>475 && y<550){
+    if (x>300 && x<350)
+    {
+      Ajouter1(11);
+    }
+    else if (x>400 && x<450)
+    {
+      Ajouter1(12);
+    }
+    else if (x>500  && x<550)
+    {
+      Ajouter1(13);
+    }
+    else if (x>600 && x<650)
+    {
+      Ajouter1(14);
+    }
+  }
+
+  if (text_to_draw[11].value == "7" && text_to_draw[12].value == "5" && text_to_draw[13].value == "9" && text_to_draw[14].value == "3"){
+    std::cout << "code juste" << std::endl;
+    MenuCodeCoffre = false;
+    ActionMenu = !ActionMenu;
+    Coffre = true;
+    Animation = true;
+  }
+}
+
+void Ajouter1(int indice){
+  int value = std::stoi(text_to_draw[indice].value) + 1;
+  if (value==10){
+    value=0;
+  }
+  char c = '0'+value;
+  text_to_draw[indice].value = c;
+}
+
+void ChoixMusique(int x, int y){
+  if (x>100 && x<300){
+      if (y>200 && y<400){
+      numMusic = 1;
+      ActionMenu = !ActionMenu;
+      }
+      else if (y>450 && y<650){
+      numMusic = 4;
+      ActionMenu = !ActionMenu;
+      }
+      else if (y>700 && y<900){
+      numMusic = 7;
+      ActionMenu = !ActionMenu;
+      }
+    }
+    else if (x>400 && x<600){
+      if (y>200 && y<400){
+      numMusic = 2;
+      ActionMenu = !ActionMenu;
+      }
+      else if (y>450 && y<650){
+      numMusic = 5;
+      ActionMenu = !ActionMenu;
+      }
+      else if (y>700 && y<900){
+      numMusic = 8;
+      ActionMenu = !ActionMenu;
+      }
+    }
+    else if (x>700 && x<900){
+      if (y>200 && y<400){
+      numMusic = 3;
+      ActionMenu = !ActionMenu;
+      }
+      else if (y>450 && y<650){
+      numMusic = 6;
+      ActionMenu = !ActionMenu;
+      }
+      else if (y>700 && y<900){
+      numMusic = 9;
+      ActionMenu = !ActionMenu;
+      }
+    }
 }
 
 static void timer_callback(int)
@@ -459,21 +535,6 @@ static void timer_callback(int)
   glutTimerFunc(25, timer_callback, 0);
 
   if(!ActionMenu){
-    //Gestion de la camera et du curseur
-    // float angle = 0.02;
-    // if (Cursor_Right){
-    //   cam.tr.rotation_euler.y += angle;
-      
-    // }
-    // if (Cursor_Left){
-    //   cam.tr.rotation_euler.y -= angle;
-    // }
-    // if (Cursor_Up && cam.tr.rotation_euler.x < 0.5){
-    //   cam.tr.rotation_euler.x += angle;
-    // }
-    // if (Cursor_Down && cam.tr.rotation_euler.x > -0.7){
-    //   cam.tr.rotation_euler.x -= angle;
-    // }
     
     if (Disk == 1){
       obj[181].visible = true;
@@ -1073,7 +1134,7 @@ void init_model_wall1()
   obj[4].nb_triangle = 2;
   obj[4].vao = upload_mesh_to_gpu(m);
 
-  obj[4].texture_id = glhelper::load_texture("data/WoodHor2.tga");
+  obj[4].texture_id = glhelper::load_texture("data/WoodHor1.tga");
 
   obj[4].visible = true;
   obj[4].prog = shader_program_id;
@@ -1123,7 +1184,7 @@ void init_model_wall2()
   obj[5].nb_triangle = 2;
   obj[5].vao = upload_mesh_to_gpu(m);
 
-  obj[5].texture_id = glhelper::load_texture("data/WoodHor2.tga");
+  obj[5].texture_id = glhelper::load_texture("data/WoodHor3.tga");
 
   obj[5].visible = true;
   obj[5].prog = shader_program_id;
@@ -1223,7 +1284,7 @@ void init_model_wall4()
   obj[7].nb_triangle = 2;
   obj[7].vao = upload_mesh_to_gpu(m);
 
-  obj[7].texture_id = glhelper::load_texture("data/WoodHor2.tga");
+  obj[7].texture_id = glhelper::load_texture("data/WoodHor4.tga");
 
   obj[7].visible = true;
   obj[7].prog = shader_program_id;
@@ -1547,4 +1608,6 @@ void init_menu(){
 
   menu[0].visible = false;
   menu[0].prog = shader_program_id;
+
+  
 }

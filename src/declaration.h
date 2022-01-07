@@ -93,9 +93,13 @@ void init_model_wall4();
 void init_model_lumiere();
 void init_model_switch();
 void textes();
+void ConditionsLumiere();
 void DisplayMenu();
 void StopDisplayMenu();
 void Deplacement();
+void OuvertureCoffreInterrupteur(int, int);
+void ChoixMusique(int, int);
+void Ajouter1(int);
 void init_menu();
 
 
