@@ -21,18 +21,24 @@ ou bien en utilisant directement `script.sh`
 ## TODO : 
 
 - [x] Augmentation de vitesse de caméra ?
-- [ ] Limiter le déplacement vertical de la caméra en haut et en bas
+- [x] Limiter le déplacement vertical de la caméra en haut et en bas
 - [x] Déplacement fluide
 - [x] Déplacement avec plusieurs touches en même temps
 - [x] Déplacement ZQSD & flèches directionnelles ?
 - [x] Saut
-- [ ] Implémenter les mains.obj
-- [ ] Associer déplacement objet et caméra
-- [ ] Interaction avec objet
-- [ ] Creation décor
+- [x] Implémenter les mains.obj
+- [x] Associer déplacement objet et caméra
+- [x] Interaction avec objet
+- [x] Creation décor
 - [ ] Detection obstacle
-- [ ] Interface objet ?
+- [x] Interface objet - Menus
 - [x] Lumière directionnelle (lampe torche)
+- [x] Gestion du texte
+- [ ] Ajout de musiques
+- [ ] Ajout d'un coffre bleu, d'un coffre rouge et d'un coffre vert
+- [ ] Rendre l'échéquier selectionnable
+- [ ] Enigme pour la biblothèque
+- [ ] Compléter la bibliothèque
 
 
 ## Liens utiles / Sources :
