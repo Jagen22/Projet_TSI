@@ -50,8 +50,8 @@ bool MenuChess = false;
 
 
 int objselected = 0;
-int objectselec[7] = {2,3,179,182,172,173,174};
-vec3 dimensionsobjects[15] = {
+int objectselec[8] = {2,3,179,182,188,172,173,174};
+vec3 dimensionsobjects[17] = {
 	vec3 (-2.5f, -4.5f, -0.5f),//2
 	vec3 ( 2.5f,  2.0f,  0.5f),
 	vec3 (-2.5f, -4.5f, -0.5f),//3
@@ -60,6 +60,8 @@ vec3 dimensionsobjects[15] = {
 	vec3 ( 0.5f, 0.5f,  0.5f),
   vec3 (-1.3f, -1.5f, -0.5f),//182
 	vec3 ( 1.3f, 0.5f,  0.5f),
+  vec3 (-0.5f, 0.0f, -0.5f),//188
+	vec3 ( 0.5f, 0.50f,  0.5f),
   vec3 (-0.12f, -0.25f, -0.05f),//172
 	vec3 ( 0.12f, 0.25f,  0.05f),
   vec3 (-0.12f, -0.25f, -0.05f),//173
@@ -234,7 +236,7 @@ void DisplayMenu(){
 }
 
 void StopDisplayMenu(){
-  glutSetCursor(GLUT_CURSOR_NONE);
+  // glutSetCursor(GLUT_CURSOR_NONE);
   glutWarpPointer(longu/2,longu/2);
   lumiereR = lastLumiere.x;
   lumiereV = lastLumiere.y;
@@ -461,16 +463,16 @@ static void mouse_clic(int button, int state, int x, int y){
         MenuCodeCoffre = true;
       }
 
-      // if (objselected == 188){
-      //   ActionMenu = !ActionMenu;
-      //   MenuChess = true;
-      //   if(lumiereR==0 && lumiereB==0 && lumiereV==1){
-      //     menu[0].texture_id = glhelper::load_texture("data/menuChessG.tga");
-      //   }
-      //   else{
-      //   menu[0].texture_id = glhelper::load_texture("data/menuChess.tga");
-      //   }
-      // }
+      if (objselected == 188){
+        ActionMenu = !ActionMenu;
+        MenuChess = true;
+        if(lumiereR==0 && lumiereB==0 && lumiereV==1){
+          menu[0].texture_id = glhelper::load_texture("data/menuChessG.tga");
+        }
+        else{
+          menu[0].texture_id = glhelper::load_texture("data/menuChess.tga");
+        }
+      }
 
       if (objselected == 172){
         lumiereR = 1-lumiereR;
@@ -694,7 +696,7 @@ int main(int argc, char** argv)
   glutInitWindowSize(longu, longu);
   
   glutCreateWindow("OpenGL");
-  glutSetCursor(GLUT_CURSOR_NONE); 
+  // glutSetCursor(GLUT_CURSOR_NONE); 
   glutWarpPointer(longu/2,longu/2);
 
   glutDisplayFunc(display_callback);
@@ -1506,7 +1508,7 @@ void fonction_Intersection(){
     // std::cout << dimensionsobjects[10] << std::endl;
     }
   
-  for (int cptselect = 0; cptselect<=6; cptselect++){
+  for (int cptselect = 0; cptselect<=7; cptselect++){
     aabb_min = dimensionsobjects[2*cptselect];
     aabb_max = dimensionsobjects[2*cptselect+1];
     mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
