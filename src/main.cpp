@@ -22,7 +22,7 @@ int longu = 1000;
 float dL=0.1f;
 camera cam;
 
-const int nb_obj = 189;
+const int nb_obj = 201;
 objet3d obj[nb_obj];
 
 const int nb_text = 17;
@@ -36,9 +36,9 @@ float angle_y_model_1 = 0.0f;
 float angle_view = 0.0f;
 
 int torche = 1;
-int lumiereR = 0;
-int lumiereV = 0;
-int lumiereB = 0;
+int lumiereR = 1;
+int lumiereV = 1;
+int lumiereB = 1;
 
 vec3 lastLumiere = vec3(lumiereR,lumiereV,lumiereB);
 
@@ -50,8 +50,8 @@ bool MenuChess = false;
 
 
 int objselected = 0;
-int objectselec[8] = {2,3,179,182,188,172,173,174};
-vec3 dimensionsobjects[17] = {
+int objectselec[11] = {2,3,179,182,188,189,193,197,172,173,174};
+vec3 dimensionsobjects[25] = {
 	vec3 (-2.5f, -4.5f, -0.5f),//2
 	vec3 ( 2.5f,  2.0f,  0.5f),
 	vec3 (-2.5f, -4.5f, -0.5f),//3
@@ -62,6 +62,12 @@ vec3 dimensionsobjects[17] = {
 	vec3 ( 1.3f, 0.5f,  0.5f),
   vec3 (-0.5f, 0.0f, -0.5f),//188
 	vec3 ( 0.5f, 0.50f,  0.5f),
+  vec3 (-1.3f, -1.5f, -0.5f),//189
+	vec3 ( 1.3f, 0.5f,  0.5f),
+  vec3 (-1.3f, -1.5f, -0.5f),//193
+	vec3 ( 1.3f, 0.5f,  0.5f),
+  vec3 (-1.3f, -1.5f, -0.5f),//197
+	vec3 ( 1.3f, 0.5f,  0.5f),
   vec3 (-0.12f, -0.25f, -0.05f),//172
 	vec3 ( 0.12f, 0.25f,  0.05f),
   vec3 (-0.12f, -0.25f, -0.05f),//173
@@ -73,6 +79,10 @@ vec3 dimensionsobjects[17] = {
 bool CodeCoffre = false;
 bool Coffre = false;
 bool Animation = false;
+
+bool AnimationRouge = false;
+bool AnimationBleu = false;
+bool AnimationVert = false;
 
 bool CoffreRouge = false;
 bool CoffreVert = false;
@@ -351,12 +361,6 @@ static void keyboard_callback(unsigned char key, int, int)
     case 't':
       torche = 1-torche;
       break;
-    case 'o':
-      if (!Animation){
-        Coffre = true;
-        Animation = true;
-      }
-      break;
     case 'e':
       ActionMenu = !ActionMenu;
       MenuChess = !MenuChess;
@@ -462,10 +466,28 @@ static void mouse_clic(int button, int state, int x, int y){
         }
         MenuCodeCoffre = true;
       }
-
+      if (objselected == 189){
+        if (!AnimationVert){
+          CoffreVert = true;
+          AnimationVert = true;
+        }
+      }
+      if (objselected == 193){
+        if (!AnimationBleu){
+          CoffreBleu = true;
+          AnimationBleu = true;
+        }
+      }
+      if (objselected == 197){
+        if (!AnimationRouge){
+          CoffreRouge = true;
+          AnimationRouge = true;
+        }
+      }
       if (objselected == 188){
         ActionMenu = !ActionMenu;
         MenuChess = true;
+        text_to_draw[16].visible = true;
         if(lumiereR==0 && lumiereB==0 && lumiereV==1){
           menu[0].texture_id = glhelper::load_texture("data/menuChessG.tga");
         }
@@ -624,12 +646,33 @@ static void timer_callback(int)
     if (Coffre){
       obj[184].tr.rotation_euler += vec3(0.1,0.0,0.0);
       obj[185].tr.rotation_euler += vec3(0.1,0.0,0.0);
-
       if (obj[184].tr.rotation_euler.x> 0){
         Coffre = false;
       }
     }
+    if (CoffreVert){
 
+      obj[191].tr.rotation_euler += vec3(0.1,0.0,0.0);
+      obj[192].tr.rotation_euler += vec3(0.1,0.0,0.0);
+      if (obj[191].tr.rotation_euler.x> 0){
+        CoffreVert = false;
+      }
+    }
+    if (CoffreBleu){
+
+      obj[195].tr.rotation_euler += vec3(0.1,0.0,0.0);
+      obj[196].tr.rotation_euler += vec3(0.1,0.0,0.0);
+      if (obj[195].tr.rotation_euler.x> 0){
+        CoffreBleu = false;
+      }
+    }
+    if (CoffreRouge){
+      obj[199].tr.rotation_euler += vec3(0.1,0.0,0.0);
+      obj[200].tr.rotation_euler += vec3(0.1,0.0,0.0);
+      if (obj[199].tr.rotation_euler.x> 0){
+        CoffreRouge = false;
+      }
+    }
     //Gestion du saut du personnage
     if (SpaceBar){
       //std::cout << obj[0].tr.translation.y << std::endl;
@@ -885,7 +928,7 @@ GLuint upload_mesh_to_gpu(const mesh& m)
 void init_model_hands()
 {
   // Chargement d'un maillage a partir d'un fichier
-  mesh m = load_obj_file("data/stegosaurus.obj");
+  mesh m = load_obj_file("data/Arms.obj");
 
   // Affecte une transformation sur les sommets du maillage
   float s = 0.55f;
@@ -1507,8 +1550,26 @@ void fonction_Intersection(){
 	  dimensionsobjects[7] =vec3 ( 0.24f, 0.25f,  0.05f);
     // std::cout << dimensionsobjects[10] << std::endl;
     }
+  if (AnimationVert){
+    objectselec[5] = 174;
+    dimensionsobjects[10] = vec3 (-0.12f, -0.25f, -0.05f);
+	  dimensionsobjects[11] = vec3 ( 0.24f, 0.25f,  0.05f);
+    // std::cout << dimensionsobjects[10] << std::endl;
+    }
+  if (AnimationBleu){
+    objectselec[6] = 174;
+    dimensionsobjects[12] = vec3 (-0.12f, -0.25f, -0.05f);
+	  dimensionsobjects[13] = vec3 ( 0.24f, 0.25f,  0.05f);
+    // std::cout << dimensionsobjects[10] << std::endl;
+    }
+  if (AnimationRouge){
+    objectselec[7] = 174;
+    dimensionsobjects[12] = vec3 (-0.12f, -0.25f, -0.05f);
+	  dimensionsobjects[13] = vec3 ( 0.24f, 0.25f,  0.05f);
+    // std::cout << dimensionsobjects[10] << std::endl;
+    }
   
-  for (int cptselect = 0; cptselect<=7; cptselect++){
+  for (int cptselect = 0; cptselect<=9; cptselect++){
     aabb_min = dimensionsobjects[2*cptselect];
     aabb_max = dimensionsobjects[2*cptselect+1];
     mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
@@ -1572,7 +1633,7 @@ void init_model_switch()
   obj[172].texture_id = glhelper::load_texture("data/SwitchRed.tga");
   obj[172].visible = true;
   obj[172].prog = shader_program_id;
-  obj[172].tr.translation = vec3(-0.7, 2.0,largMaison/2-0.1);
+  obj[172].tr.translation = vec3(2*largMaison/5-0.7, 2.0,largMaison/2-0.1);
 
   obj[173].vao = obj[172].vao;
   obj[173].nb_triangle = obj[172].nb_triangle;
@@ -1580,14 +1641,14 @@ void init_model_switch()
   //obj[173].tr.rotation_euler = vec3(0.0,M_PI/2,0.0);
   obj[173].visible = obj[172].visible;
   obj[173].prog = obj[172].prog;
-  obj[173].tr.translation = vec3(0.0, 2.0, largMaison/2-0.1);
+  obj[173].tr.translation = vec3(2*largMaison/5+0.0, 2.0, largMaison/2-0.1);
   
   obj[174].vao = obj[172].vao;
   obj[174].nb_triangle = obj[172].nb_triangle;
   obj[174].texture_id = glhelper::load_texture("data/SwitchBlue.tga");
   obj[174].visible = obj[172].visible;
   obj[174].prog = obj[172].prog;
-  obj[174].tr.translation = vec3(0.7, 2.0, largMaison/2-0.1);
+  obj[174].tr.translation = vec3(2*largMaison/5+0.7, 2.0, largMaison/2-0.1);
   
   m = load_obj_file("data/coffre/fondCoffreAcier.obj");
 
@@ -1605,7 +1666,7 @@ void init_model_switch()
   obj[182].texture_id = glhelper::load_texture("data/dore.tga");
   obj[182].visible = true;
   obj[182].prog = shader_program_id;
-  obj[182].tr.translation = vec3(0.0, 1.0,largMaison/2-0.65);
+  obj[182].tr.translation = vec3(2*largMaison/5, 1.0,largMaison/2-0.65);
   obj[182].tr.rotation_euler = vec3(0.0,M_PI,0.0);
 
   m = load_obj_file("data/coffre/fondCoffrebois.obj");
@@ -1638,19 +1699,107 @@ void init_model_switch()
   obj[185].texture_id = glhelper::load_texture("data/wood.png");
   obj[185].visible = true;
   obj[185].prog = shader_program_id;
-  obj[185].tr.translation = obj[182].tr.translation+vec3(0.0,1.72,-0.18);;
+  obj[185].tr.translation = obj[182].tr.translation+vec3(0.0,1.72,-0.18);
   obj[185].tr.rotation_euler = obj[182].tr.rotation_euler+vec3(-1.6,0,0);
 
-  // m = load_obj_file("data/table.obj");
-  // apply_deformation(&m,transform);
-  // fill_color(&m,vec3(0.5f,0.5f,0.5f));
-  // obj[186].vao = upload_mesh_to_gpu(m);
-  // obj[186].nb_triangle = m.connectivity.size();
-  // obj[186].texture_id = glhelper::load_texture("data/white.tga");
-  // obj[186].visible = true;
-  // obj[186].prog = shader_program_id;
-  // obj[186].tr.translation = obj[182].tr.translation;
-  // obj[186].tr.rotation_euler = obj[182].tr.rotation_euler;
+ //******************************** Coffre Vert ***************************************
+  obj[189].vao = obj[182].vao;
+  obj[189].nb_triangle = m.connectivity.size();
+  obj[189].texture_id = glhelper::load_texture("data/dore.tga");
+  obj[189].visible = true;
+  obj[189].prog = shader_program_id;
+  obj[189].tr.translation = vec3(-largMaison/5, 1.0,largMaison/2-0.65);
+  obj[189].tr.rotation_euler = vec3(0.0,M_PI,0.0);
+
+  obj[190].vao = obj[183].vao;
+  obj[190].nb_triangle = m.connectivity.size();
+  obj[190].texture_id = glhelper::load_texture("data/GREEN.tga");
+  obj[190].visible = true;
+  obj[190].prog = shader_program_id;
+  obj[190].tr.translation = obj[189].tr.translation;
+  obj[190].tr.rotation_euler = obj[189].tr.rotation_euler;
+
+  obj[191].vao = obj[184].vao; 
+  obj[191].nb_triangle = m.connectivity.size();
+  obj[191].texture_id = glhelper::load_texture("data/dore.tga");
+  obj[191].visible = true;
+  obj[191].prog = shader_program_id;
+  obj[191].tr.translation = obj[189].tr.translation+vec3(0.0,1.72,-0.18);
+  obj[191].tr.rotation_euler = obj[189].tr.rotation_euler+vec3(-1.6,0.0,0.0);
+
+  obj[192].vao = obj[185].vao;
+  obj[192].nb_triangle = m.connectivity.size();
+  obj[192].texture_id = glhelper::load_texture("data/GREEN.tga");
+  obj[192].visible = true;
+  obj[192].prog = shader_program_id;
+  obj[192].tr.translation = obj[191].tr.translation;
+  obj[192].tr.rotation_euler = obj[191].tr.rotation_euler;
+
+//******************************** Coffre bleu ***************************************
+  obj[193].vao = obj[182].vao;
+  obj[193].nb_triangle = m.connectivity.size();
+  obj[193].texture_id = glhelper::load_texture("data/dore.tga");
+  obj[193].visible = true;
+  obj[193].prog = shader_program_id;
+  obj[193].tr.translation = vec3(largMaison/5, 1.0,largMaison/2-0.65);
+  obj[193].tr.rotation_euler = vec3(0.0,M_PI,0.0);
+
+  obj[194].vao = obj[183].vao;
+  obj[194].nb_triangle = m.connectivity.size();
+  obj[194].texture_id = glhelper::load_texture("data/BLUE.tga");
+  obj[194].visible = true;
+  obj[194].prog = shader_program_id;
+  obj[194].tr.translation = obj[193].tr.translation;
+  obj[194].tr.rotation_euler = obj[193].tr.rotation_euler;
+
+  obj[195].vao = obj[184].vao; 
+  obj[195].nb_triangle = m.connectivity.size();
+  obj[195].texture_id = glhelper::load_texture("data/dore.tga");
+  obj[195].visible = true;
+  obj[195].prog = shader_program_id;
+  obj[195].tr.translation = obj[193].tr.translation+vec3(0.0,1.72,-0.18);
+  obj[195].tr.rotation_euler = obj[193].tr.rotation_euler+vec3(-1.6,0.0,0.0);
+
+  obj[196].vao = obj[185].vao;
+  obj[196].nb_triangle = m.connectivity.size();
+  obj[196].texture_id = glhelper::load_texture("data/BLUE.tga");
+  obj[196].visible = true;
+  obj[196].prog = shader_program_id;
+  obj[196].tr.translation = obj[195].tr.translation;
+  obj[196].tr.rotation_euler = obj[195].tr.rotation_euler;
+
+//******************************** Coffre Rouge ***************************************
+  obj[197].vao = obj[182].vao;
+  obj[197].nb_triangle = m.connectivity.size();
+  obj[197].texture_id = glhelper::load_texture("data/dore.tga");
+  obj[197].visible = true;
+  obj[197].prog = shader_program_id;
+  obj[197].tr.translation = vec3(-2*largMaison/5, 1.0,largMaison/2-0.65);
+  obj[197].tr.rotation_euler = vec3(0.0,M_PI,0.0);
+
+  obj[198].vao = obj[183].vao;
+  obj[198].nb_triangle = m.connectivity.size();
+  obj[198].texture_id = glhelper::load_texture("data/RED.tga");
+  obj[198].visible = true;
+  obj[198].prog = shader_program_id;
+  obj[198].tr.translation = obj[197].tr.translation;
+  obj[198].tr.rotation_euler = obj[197].tr.rotation_euler;
+
+  obj[199].vao = obj[184].vao; 
+  obj[199].nb_triangle = m.connectivity.size();
+  obj[199].texture_id = glhelper::load_texture("data/dore.tga");
+  obj[199].visible = true;
+  obj[199].prog = shader_program_id;
+  obj[199].tr.translation = obj[197].tr.translation+vec3(0.0,1.72,-0.18);
+  obj[199].tr.rotation_euler = obj[197].tr.rotation_euler+vec3(-1.6,0.0,0.0);
+
+  obj[200].vao = obj[185].vao;
+  obj[200].nb_triangle = m.connectivity.size();
+  obj[200].texture_id = glhelper::load_texture("data/RED.tga");
+  obj[200].visible = true;
+  obj[200].prog = shader_program_id;
+  obj[200].tr.translation = obj[199].tr.translation;
+  obj[200].tr.rotation_euler = obj[199].tr.rotation_euler;
 }
 
 
