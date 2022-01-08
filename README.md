@@ -36,7 +36,7 @@ ou bien en utilisant directement `script.sh`
 - [x] Gestion du texte
 - [ ] Ajout de musiques
 - [ ] Ajout d'un coffre bleu, d'un coffre rouge et d'un coffre vert
-- [ ] Rendre l'échéquier selectionnable
+- [x] Rendre l'échéquier selectionnable
 - [ ] Enigme pour la biblothèque
 - [ ] Compléter la bibliothèque
 
