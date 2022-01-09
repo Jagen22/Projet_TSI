@@ -80,7 +80,6 @@ bool Cursor_Down;
 //Prototypes des fonctions :
 void init_text(text *t);
 void draw_text(const text* const t);
-
 void fonction_Intersection();
 void init_model_ObjetsFixes();
 void init_model_hands();
@@ -97,7 +96,10 @@ void ConditionsLumiere();
 void DisplayMenu();
 void StopDisplayMenu();
 void Deplacement();
+void OuvertureBiblio(int, int);
 void ChessBoard(int, int);
+void OuvertureCoffreRouge(int, int);
+void OuvertureCoffreVert(int, int);
 void OuvertureCoffreInterrupteur(int, int);
 void ChoixMusique(int, int);
 void Ajouter1(int);

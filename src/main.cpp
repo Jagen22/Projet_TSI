@@ -42,9 +42,11 @@ int lumiereB = 1;
 
 vec3 lastLumiere = vec3(lumiereR,lumiereV,lumiereB);
 
-int Disk = 0;
-int numMusic = 0;
+
+bool MenuCodeBiblio = false;
 bool MenuCodeCoffre = false;
+bool MenuCodeCoffreRouge = false;
+bool MenuCodeCoffreVert = false;
 bool MenuChess = false;
 
 
@@ -88,6 +90,9 @@ bool CoffreRouge = false;
 bool CoffreVert = false;
 bool CoffreBleu = false;
 
+bool CodeBiblio = false;
+int Disk = 0;
+int numMusic = 0;
 
 int i = 0;
 int k = 0;
@@ -175,8 +180,6 @@ void textes(){
 
 }
 
-
-
 static void display_callback()
 {
   glClearColor(0.5f, 0.6f, 0.9f, 1.0f); CHECK_GL_ERROR();
@@ -219,14 +222,10 @@ void ConditionsLumiere(){
   }
 
   if (Disk==2 && numMusic == 6 && lumiereR==0 && lumiereV==0 && lumiereB==1){
-    CoffreBleu = true;
-  }
-
-  if (lumiereR==0 && lumiereV==1 && lumiereB==0){
-    //obj[x].texture_id = glhelper::load_texture("data/chessboard/chessboardG.tga");
-  }
-  else{
-    //obj[x].texture_id = glhelper::load_texture("data/chessboard/chessboard.tga");
+    if (!AnimationBleu){
+      CoffreBleu = true;
+      AnimationBleu = true;
+    }
   }
 }
 
@@ -436,7 +435,15 @@ static void mouse_clic(int button, int state, int x, int y){
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
     if (!ActionMenu){
       if (objselected == 2 || objselected == 3 ){
-        if (Disk == 0){
+        if (!CodeBiblio){
+          ActionMenu = !ActionMenu;
+          menu[0].texture_id = glhelper::load_texture("data/menuCodeBiblio.tga");
+          for (int itxt = 11; itxt < 16; itxt++){
+            text_to_draw[itxt].visible = true;
+          }
+          MenuCodeBiblio = true;
+        }
+        else if (Disk == 0){
           Disk = 1;
           ActionMenu = !ActionMenu;
           menu[0].texture_id = glhelper::load_texture("data/testmenu.tga");
@@ -467,22 +474,20 @@ static void mouse_clic(int button, int state, int x, int y){
         MenuCodeCoffre = true;
       }
       if (objselected == 189){
-        if (!AnimationVert){
-          CoffreVert = true;
-          AnimationVert = true;
+        ActionMenu = !ActionMenu;
+        menu[0].texture_id = glhelper::load_texture("data/menuCoffreG.tga");
+        for (int itxt = 11; itxt < 16; itxt++){
+          text_to_draw[itxt].visible = true;
         }
-      }
-      if (objselected == 193){
-        if (!AnimationBleu){
-          CoffreBleu = true;
-          AnimationBleu = true;
-        }
+        MenuCodeCoffreVert = true;
       }
       if (objselected == 197){
-        if (!AnimationRouge){
-          CoffreRouge = true;
-          AnimationRouge = true;
+        ActionMenu = !ActionMenu;
+        menu[0].texture_id = glhelper::load_texture("data/menuCoffreR.tga");
+        for (int itxt = 11; itxt < 16; itxt++){
+          text_to_draw[itxt].visible = true;
         }
+        MenuCodeCoffreRouge = true;
       }
       if (objselected == 188){
         ActionMenu = !ActionMenu;
@@ -510,17 +515,62 @@ static void mouse_clic(int button, int state, int x, int y){
       }
     }
     else{
+      if (MenuCodeBiblio){
+        OuvertureBiblio(x,y);
+      }
+
       if (Disk==1){
         ChoixMusique(x,y);
       }
-      if (MenuCodeCoffre == true){
+
+      if (MenuCodeCoffre){
         OuvertureCoffreInterrupteur(x,y);
       }
 
       if(MenuChess){
         ChessBoard(x,y);
       }
+
+      if (MenuCodeCoffreRouge){
+        OuvertureCoffreRouge(x,y);
+      }
+
+      if (MenuCodeCoffreVert){
+        OuvertureCoffreVert(x,y);
+      }
     }
+  }
+}
+
+void OuvertureBiblio(int x, int y){
+  if (x>400 && x<600 && y>650 && y<700){
+    MenuCodeBiblio = false;
+    ActionMenu = !ActionMenu;
+  }
+  else if (y>475 && y<550){
+    if (x>300 && x<350)
+    {
+      Ajouter1(11);
+    }
+    else if (x>400 && x<450)
+    {
+      Ajouter1(12);
+    }
+    else if (x>500  && x<550)
+    {
+      Ajouter1(13);
+    }
+    else if (x>600 && x<650)
+    {
+      Ajouter1(14);
+    }
+  }
+
+  if (text_to_draw[11].value == "4" && text_to_draw[12].value == "8" && text_to_draw[13].value == "7" && text_to_draw[14].value == "6"){
+    std::cout << "code juste" << std::endl;
+    MenuCodeBiblio = false;
+    ActionMenu = !ActionMenu;
+    CodeBiblio = true;
   }
 }
 
@@ -530,6 +580,72 @@ void ChessBoard(int x, int y){
   if (x>400 && x<600 && y>900 && y<950){
     MenuChess = false;
     ActionMenu = !ActionMenu;
+  }
+}
+
+void OuvertureCoffreRouge(int x, int y){
+  if (x>400 && x<600 && y>650 && y<700){
+    MenuCodeCoffreRouge = false;
+    ActionMenu = !ActionMenu;
+  }
+  else if (y>475 && y<550){
+    if (x>300 && x<350)
+    {
+      Ajouter1(11);
+    }
+    else if (x>400 && x<450)
+    {
+      Ajouter1(12);
+    }
+    else if (x>500  && x<550)
+    {
+      Ajouter1(13);
+    }
+    else if (x>600 && x<650)
+    {
+      Ajouter1(14);
+    }
+  }
+
+  if (text_to_draw[11].value == "0" && text_to_draw[12].value == "9" && text_to_draw[13].value == "0" && text_to_draw[14].value == "1"){
+    std::cout << "code juste" << std::endl;
+    MenuCodeCoffreRouge = false;
+    ActionMenu = !ActionMenu;
+    CoffreRouge = true;
+    AnimationRouge = true;
+  }
+}
+
+void OuvertureCoffreVert(int x, int y){
+  if (x>400 && x<600 && y>650 && y<700){
+    MenuCodeCoffreVert = false;
+    ActionMenu = !ActionMenu;
+  }
+  else if (y>475 && y<550){
+    if (x>300 && x<350)
+    {
+      Ajouter1(11);
+    }
+    else if (x>400 && x<450)
+    {
+      Ajouter1(12);
+    }
+    else if (x>500  && x<550)
+    {
+      Ajouter1(13);
+    }
+    else if (x>600 && x<650)
+    {
+      Ajouter1(14);
+    }
+  }
+
+  if (text_to_draw[11].value == "7" && text_to_draw[12].value == "2" && text_to_draw[13].value == "5" && text_to_draw[14].value == "6"){
+    std::cout << "code juste" << std::endl;
+    MenuCodeCoffreVert = false;
+    ActionMenu = !ActionMenu;
+    CoffreVert = true;
+    AnimationVert = true;
   }
 }
 
@@ -729,7 +845,6 @@ static void mouse_move(int xmous,int ymous){
     }
   }
 }
-
 
 int main(int argc, char** argv)
 {
@@ -1802,7 +1917,6 @@ void init_model_switch()
   obj[200].tr.rotation_euler = obj[199].tr.rotation_euler;
 }
 
-
 void init_menu(){
   mesh m;
 
@@ -1845,7 +1959,7 @@ void init_menu(){
   menu[0].nb_triangle = 2;
   menu[0].vao = upload_mesh_to_gpu(m);
 
-  menu[0].texture_id = glhelper::load_texture("data/testmenu.tga");
+  menu[0].texture_id = glhelper::load_texture("data/menuCodeBiblio.tga");
 
   menu[0].visible = false;
   menu[0].prog = shader_program_id;

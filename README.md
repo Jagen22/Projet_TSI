@@ -35,10 +35,10 @@ ou bien en utilisant directement `script.sh`
 - [x] Lumière directionnelle (lampe torche)
 - [x] Gestion du texte
 - [ ] Ajout de musiques
-- [ ] Ajout d'un coffre bleu, d'un coffre rouge et d'un coffre vert
+- [x] Ajout d'un coffre bleu, d'un coffre rouge et d'un coffre vert
 - [x] Rendre l'échéquier selectionnable
-- [ ] Enigme pour la biblothèque
-- [ ] Compléter la bibliothèque
+- [x] Enigme pour la biblothèque
+- [x] Compléter la bibliothèque
 
 
 ## Liens utiles / Sources :
