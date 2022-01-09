@@ -7,10 +7,6 @@
 
 #include "declaration.h"
 #include <bits/stdc++.h>
-//#include <irrKlang.h>
-
-// using namespace irrklang;
-// ISoundEngine *SoundEngine = createIrrKlangDevice();
 
     
 //identifiant des shaders
@@ -113,9 +109,7 @@ static void init()
   shader_program_id = glhelper::create_program_from_file("shaders/shader.vert", "shaders/shader.frag"); CHECK_GL_ERROR();
   cam.projection = matrice_projection(60.0f*M_PI/180.0f,1.0f,0.01f,100.0f);
   cam.tr.translation = vec3(0.0f, 2.0f, 0.0f);
-  // cam.tr.translation = vec3(0.0f, 20.0f, 0.0f);
-  // cam.tr.rotation_center = vec3(0.0f, 20.0f, 0.0f);
-  // cam.tr.rotation_euler = vec3(M_PI/2., 0.0f, 0.0f);
+
   init_model_hands();
   init_model_ground();
   init_model_ObjetsFixes();
@@ -273,7 +267,7 @@ void DisplayMenu(){
 }
 
 void StopDisplayMenu(){
-  // glutSetCursor(GLUT_CURSOR_NONE);
+  glutSetCursor(GLUT_CURSOR_NONE);
   glutWarpPointer(longu/2,longu/2);
   lumiereR = lastLumiere.x;
   lumiereV = lastLumiere.y;
@@ -317,6 +311,7 @@ void Deplacement(){
         if (!SpaceBar){cam.tr.translation.y = 2;}
     }
   }
+
   else{
     //Si une touche de deplacement est activee, on teste si la future position depasse les limites de la map
     //Dans le cas ou le deplacement est valide, on deplace la camera de dL dans la direction d'orientation de la camera
@@ -331,7 +326,9 @@ void Deplacement(){
           }
         }
       }
-
+      if (Fin && (Zpos + UDmove.z > largMaison/2 - 3)){
+        exit(0);
+      }
     }
     if(Move_Down){
       if (abs(Xpos - UDmove.x) < largMaison/2 - 1 && (abs(Zpos - UDmove.z) < largMaison/2 - 3)){
@@ -410,9 +407,6 @@ static void keyboard_callback(unsigned char key, int, int)
     case 't':
       torche = 1-torche;
       break;
-    case 'e':
-      std::cout << obj[0].tr.translation << std::endl;
-    break;
   }
 }
 
@@ -638,8 +632,6 @@ void OuvertureBiblio(int x, int y){
 }
 
 void ChessBoard(int x, int y){
-  std::cout << x << std::endl;
-  std::cout << y << std::endl;
   if (x>400 && x<600 && y>900 && y<950){
     MenuChess = false;
     ActionMenu = !ActionMenu;
@@ -854,14 +846,12 @@ static void timer_callback(int)
     }
     if (AnimationPorte){
       obj[201].tr.rotation_euler -= vec3(0.0,0.1,0.0);
-      std::cout << obj[201].tr.rotation_euler.y << std::endl;
       if (obj[201].tr.rotation_euler.y < -M_PI/2){
         AnimationPorte = false;
       }
     }
     //Gestion du saut du personnage
     if (SpaceBar){
-      //std::cout << obj[0].tr.translation.y << std::endl;
       while(cam.tr.translation.y <= 4 && Jump == false){
         cam.tr.translation.y += 0.1;
         if (cam.tr.translation.y >= 4) {
@@ -890,7 +880,6 @@ static void mouse_move(int xmous,int ymous){
       delta = posACT.x-longu/2;
       cam.tr.rotation_euler.y += (M_PI/longu/2)*delta;
       glutWarpPointer(longu/2,longu/2);
-      // Cursor_Right = true;
     }
     if (posACT.x < longu/2){
       delta = longu/2-posACT.x;
@@ -918,13 +907,12 @@ static void mouse_move(int xmous,int ymous){
 
 int main(int argc, char** argv)
 {
-  //SoundEngine->play2D("data/Sabaton.mp3", true);
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | MACOSX_COMPATIBILITY);
   glutInitWindowSize(longu, longu);
   
   glutCreateWindow("OpenGL");
-  // glutSetCursor(GLUT_CURSOR_NONE); 
+  glutSetCursor(GLUT_CURSOR_NONE); 
   glutWarpPointer(longu/2,longu/2);
 
   glutDisplayFunc(display_callback);
@@ -1333,7 +1321,7 @@ void init_model_ObjetsFixes()
   obj[187].tr.translation = vec3(largMaison/2-5, -0.5, 0.0);
 
 
-  m = load_obj_file("data/chessboard/Final_chessboard.obj");
+  m = load_obj_file("data/Final_chessboard.obj");
   // Affecte une transformation sur les sommets du maillage
   s = 5.0f;
   transform = mat4(   s, 0.0f, 0.0f, 0.0f,
@@ -1831,7 +1819,6 @@ void init_model_switch()
   obj[173].vao = obj[172].vao;
   obj[173].nb_triangle = obj[172].nb_triangle;
   obj[173].texture_id = glhelper::load_texture("data/SwitchGreen.tga");
-  //obj[173].tr.rotation_euler = vec3(0.0,M_PI/2,0.0);
   obj[173].visible = obj[172].visible;
   obj[173].prog = obj[172].prog;
   obj[173].tr.translation = vec3(2*largMaison/5+0.0, 2.0, largMaison/2-0.1);
@@ -2013,7 +2000,7 @@ void init_porte(){
   obj[201].tr.translation = vec3(0.0,-0.1,largMaison/2-0.15);
   obj[201].tr.rotation_center = vec3(0.8,0.0,0.0);
 
-// // lumière gauche
+ // lumière gauche
   m = load_obj_file("data/Door/Encadrement_Door.obj");
   s = 1.0f;
   transform = mat4(   s, 0.0f, 0.0f, 0.0f,
@@ -2057,15 +2044,6 @@ void init_porte(){
   obj[205].visible = true;
   obj[205].tr.translation = obj[201].tr.translation+vec3(-0.8,1.2,0.0);
   obj[205].prog = shader_program_id;
-// // lumière gauche
-//   obj[204].vao = obj[171].vao;
-//   obj[204].nb_triangle = obj[171].nb_triangle;
-//   obj[204].texture_id = glhelper::load_texture("data/marbre.tga");
-//   obj[204].visible = true;
-//   obj[204].tr.translation = vec3(0.0, 7.0, -largMaison/2-0.1 );
-//   obj[204].tr.rotation_euler =  vec3(0.0,M_PI/2,0.0);
-//   obj[204].prog = shader_program_id;
-
 }
 
 void init_menu(){
