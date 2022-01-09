@@ -22,7 +22,7 @@ int longu = 1000;
 float dL=0.1f;
 camera cam;
 
-const int nb_obj = 201;
+const int nb_obj = 206;
 objet3d obj[nb_obj];
 
 const int nb_text = 21;
@@ -48,12 +48,12 @@ bool MenuCodeCoffre = false;
 bool MenuCodeCoffreRouge = false;
 bool MenuCodeCoffreVert = false;
 bool MenuChess = false;
-
+bool Fin = false;
 
 
 int objselected = 0;
-int objectselec[11] = {2,3,179,182,188,189,193,197,172,173,174};
-vec3 dimensionsobjects[25] = {
+int objectselec[12] = {2,3,179,182,188,189,193,197,201,172,173,174};
+vec3 dimensionsobjects[27] = {
 	vec3 (-2.5f, -4.5f, -0.5f),//2
 	vec3 ( 2.5f,  2.0f,  0.5f),
 	vec3 (-2.5f, -4.5f, -0.5f),//3
@@ -69,6 +69,8 @@ vec3 dimensionsobjects[25] = {
   vec3 (-1.3f, -1.5f, -0.5f),//193
 	vec3 ( 1.3f, 0.5f,  0.5f),
   vec3 (-1.3f, -1.5f, -0.5f),//197
+	vec3 ( 1.3f, 0.5f,  0.5f),
+  vec3 (-1.3f, -1.5f, -0.5f),//201
 	vec3 ( 1.3f, 0.5f,  0.5f),
   vec3 (-0.12f, -0.25f, -0.05f),//172
 	vec3 ( 0.12f, 0.25f,  0.05f),
@@ -90,6 +92,8 @@ bool CoffreRouge = false;
 bool CoffreVert = false;
 bool CoffreBleu = false;
 
+bool AnimationPorte = false;
+
 bool CodeBiblio = false;
 int Disk = 0;
 int numMusic = 0;
@@ -103,7 +107,6 @@ double timer;
 
 bool ActionMenu = false;
 bool GodMode = false;
-bool Fin = false;
 
 static void init()
 {
@@ -123,6 +126,7 @@ static void init()
   init_model_ceiling();
   init_model_switch();
   init_model_lumiere();
+  init_porte();
   init_menu();
 
   gui_program_id = glhelper::create_program_from_file("shaders/gui.vert", "shaders/gui.frag"); CHECK_GL_ERROR();
@@ -202,7 +206,6 @@ void textes(){
   text_to_draw[20].bottomLeft = vec2(-0.8, -0.2);
   text_to_draw[20].topRight = vec2(0.8, 2.0);
   text_to_draw[20].visible = false;
-
 }
 
 static void display_callback()
@@ -210,37 +213,15 @@ static void display_callback()
   glClearColor(0.5f, 0.6f, 0.9f, 1.0f); CHECK_GL_ERROR();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_GL_ERROR();
   
-  if(AnimationBleu && AnimationRouge && AnimationVert){
-    glutSetCursor(GLUT_CURSOR_NONE);
-    glutWarpPointer(longu/2,longu/2);
-    lumiereR = 1;
-    lumiereV = 1;
-    lumiereB = 1;
-    menu[0].visible = false;
-    obj[0].visible = true;
-    for(int itxt = 0; itxt < nb_text; ++itxt){
-      text_to_draw[itxt].visible = false;
-    }
-    text_to_draw[17].visible = true;
-    text_to_draw[18].visible = true;
-    text_to_draw[19].visible = true;
-    text_to_draw[20].visible = true;
 
-    Fin = true;
-    Deplacement();
-
+  if(ActionMenu ){
+    DisplayMenu();
   }
   else{
-    if(ActionMenu){
-      DisplayMenu();
-    }
-    else{
     StopDisplayMenu();
     Deplacement();
     ConditionsLumiere();
-    }
   }
-  
 
 
   //Affichage des differents objets
@@ -292,14 +273,14 @@ void DisplayMenu(){
 }
 
 void StopDisplayMenu(){
-  glutSetCursor(GLUT_CURSOR_NONE);
+  // glutSetCursor(GLUT_CURSOR_NONE);
   glutWarpPointer(longu/2,longu/2);
   lumiereR = lastLumiere.x;
   lumiereV = lastLumiere.y;
   lumiereB = lastLumiere.z;
   menu[0].visible = false;
   obj[0].visible = true;
-  for(int itxt = 0; itxt < nb_text; ++itxt){
+  for(int itxt = 0; itxt < 17; ++itxt){
     text_to_draw[itxt].visible = false;
   }
 }
@@ -430,9 +411,7 @@ static void keyboard_callback(unsigned char key, int, int)
       torche = 1-torche;
       break;
     case 'e':
-      AnimationVert = true;
-      AnimationBleu = true;
-      AnimationRouge = true;
+      std::cout << obj[0].tr.translation << std::endl;
     break;
   }
 }
@@ -551,6 +530,27 @@ static void mouse_clic(int button, int state, int x, int y){
           text_to_draw[itxt].visible = true;
         }
         MenuCodeCoffreRouge = true;
+      }
+      if (objselected == 201){
+        if (AnimationRouge & AnimationVert & AnimationBleu){
+          AnimationPorte = true;
+          glutSetCursor(GLUT_CURSOR_NONE);
+          glutWarpPointer(longu/2,longu/2);
+          lumiereR = 1;
+          lumiereV = 1;
+          lumiereB = 1;
+          menu[0].visible = false;
+          obj[0].visible = true;
+          for(int itxt = 0; itxt < nb_text; ++itxt){
+            text_to_draw[itxt].visible = false;
+          }
+          text_to_draw[17].visible = true;
+          text_to_draw[18].visible = true;
+          text_to_draw[19].visible = true;
+          text_to_draw[20].visible = true;
+          Fin = true;
+          Deplacement();
+        }
       }
       if (objselected == 188){
         ActionMenu = !ActionMenu;
@@ -850,6 +850,13 @@ static void timer_callback(int)
       obj[200].tr.rotation_euler += vec3(0.1,0.0,0.0);
       if (obj[199].tr.rotation_euler.x> 0){
         CoffreRouge = false;
+      }
+    }
+    if (AnimationPorte){
+      obj[201].tr.rotation_euler -= vec3(0.0,0.1,0.0);
+      std::cout << obj[201].tr.rotation_euler.y << std::endl;
+      if (obj[201].tr.rotation_euler.y < -M_PI/2){
+        AnimationPorte = false;
       }
     }
     //Gestion du saut du personnage
@@ -1730,24 +1737,32 @@ void fonction_Intersection(){
     }
   if (AnimationVert){
     objectselec[5] = 174;
+    obj[205].visible = false;
     dimensionsobjects[10] = vec3 (-0.12f, -0.25f, -0.05f);
 	  dimensionsobjects[11] = vec3 ( 0.24f, 0.25f,  0.05f);
     // std::cout << dimensionsobjects[10] << std::endl;
     }
   if (AnimationBleu){
     objectselec[6] = 174;
+    obj[204].visible = false;
     dimensionsobjects[12] = vec3 (-0.12f, -0.25f, -0.05f);
 	  dimensionsobjects[13] = vec3 ( 0.24f, 0.25f,  0.05f);
     // std::cout << dimensionsobjects[10] << std::endl;
     }
   if (AnimationRouge){
     objectselec[7] = 174;
-    dimensionsobjects[12] = vec3 (-0.12f, -0.25f, -0.05f);
-	  dimensionsobjects[13] = vec3 ( 0.24f, 0.25f,  0.05f);
+    obj[203].visible = false;
+    dimensionsobjects[14] = vec3 (-0.12f, -0.25f, -0.05f);
+	  dimensionsobjects[15] = vec3 ( 0.24f, 0.25f,  0.05f);
     // std::cout << dimensionsobjects[10] << std::endl;
     }
-  
-  for (int cptselect = 0; cptselect<=9; cptselect++){
+  if (AnimationPorte){
+    objectselec[8] = 174;
+    dimensionsobjects[16] = vec3 (-0.12f, -0.25f, -0.05f);
+	  dimensionsobjects[17] = vec3 ( 0.24f, 0.25f,  0.05f);
+    // std::cout << dimensionsobjects[10] << std::endl;
+    }
+  for (int cptselect = 0; cptselect<=11; cptselect++){
     aabb_min = dimensionsobjects[2*cptselect];
     aabb_max = dimensionsobjects[2*cptselect+1];
     mat4 rotation_x = matrice_rotation(cam.tr.rotation_euler.x+M_PI, 1.0f, 0.0f, 0.0f);
@@ -1978,6 +1993,79 @@ void init_model_switch()
   obj[200].prog = shader_program_id;
   obj[200].tr.translation = obj[199].tr.translation;
   obj[200].tr.rotation_euler = obj[199].tr.rotation_euler;
+}
+
+void init_porte(){
+  mesh m = load_obj_file("data/Door/Door.obj");
+  float s = 1.0f;
+  mat4 transform = mat4(   s, 0.0f, 0.0f, 0.0f,
+      0.0f,    s, 0.0f, 0.0f,
+      0.0f, 0.0f,   s , 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f);
+  apply_deformation(&m,transform);
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
+
+  obj[201].vao = upload_mesh_to_gpu(m);
+  obj[201].nb_triangle = m.connectivity.size();
+  obj[201].texture_id = glhelper::load_texture("data/acier.tga");
+  obj[201].visible = true;
+  obj[201].prog = shader_program_id;
+  obj[201].tr.translation = vec3(0.0,-0.1,largMaison/2-0.15);
+  obj[201].tr.rotation_center = vec3(0.8,0.0,0.0);
+
+// // lumière gauche
+  m = load_obj_file("data/Door/Encadrement_Door.obj");
+  s = 1.0f;
+  transform = mat4(   s, 0.0f, 0.0f, 0.0f,
+      0.0f,    s, 0.0f, 0.0f,
+      0.0f, 0.0f,   s , 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f);
+  apply_deformation(&m,transform);
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
+  obj[202].vao = upload_mesh_to_gpu(m);
+  obj[202].nb_triangle = m.connectivity.size();
+  obj[202].texture_id = glhelper::load_texture("data/marbre.tga");
+  obj[202].visible = true;
+  obj[202].tr.translation = obj[201].tr.translation;
+  obj[202].prog = shader_program_id;
+
+  m = load_obj_file("data/Door/Serrure.obj");
+  s = 1.0f;
+  transform = mat4(   -s, 0.0f, 0.0f, 0.0f,
+      0.0f,    s, 0.0f, 0.0f,
+      0.0f, 0.0f,   s , 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f);
+  apply_deformation(&m,transform);
+  fill_color(&m,vec3(1.0f,1.0f,1.0f));
+  obj[203].vao = upload_mesh_to_gpu(m);
+  obj[203].nb_triangle = m.connectivity.size();
+  obj[203].texture_id = glhelper::load_texture("data/RED.tga");
+  obj[203].visible = true;
+  obj[203].tr.translation = obj[201].tr.translation+vec3(-0.8,3.2,0.0);
+  obj[203].prog = shader_program_id;
+
+  obj[204].vao = obj[203].vao;
+  obj[204].nb_triangle = obj[203].nb_triangle;
+  obj[204].texture_id = glhelper::load_texture("data/BLUE.tga");
+  obj[204].visible = true;
+  obj[204].tr.translation = obj[201].tr.translation+vec3(-0.8,2.2,0.0);
+  obj[204].prog = shader_program_id;
+
+  obj[205].vao = obj[203].vao;
+  obj[205].nb_triangle = obj[203].nb_triangle;
+  obj[205].texture_id = glhelper::load_texture("data/GREEN.tga");
+  obj[205].visible = true;
+  obj[205].tr.translation = obj[201].tr.translation+vec3(-0.8,1.2,0.0);
+  obj[205].prog = shader_program_id;
+// // lumière gauche
+//   obj[204].vao = obj[171].vao;
+//   obj[204].nb_triangle = obj[171].nb_triangle;
+//   obj[204].texture_id = glhelper::load_texture("data/marbre.tga");
+//   obj[204].visible = true;
+//   obj[204].tr.translation = vec3(0.0, 7.0, -largMaison/2-0.1 );
+//   obj[204].tr.rotation_euler =  vec3(0.0,M_PI/2,0.0);
+//   obj[204].prog = shader_program_id;
+
 }
 
 void init_menu(){

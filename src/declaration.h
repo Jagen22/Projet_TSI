@@ -103,6 +103,7 @@ void OuvertureCoffreVert(int, int);
 void OuvertureCoffreInterrupteur(int, int);
 void ChoixMusique(int, int);
 void Ajouter1(int);
+void init_porte();
 void init_menu();
 
 
