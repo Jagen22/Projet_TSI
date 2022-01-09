@@ -1113,7 +1113,7 @@ GLuint upload_mesh_to_gpu(const mesh& m)
 void init_model_hands()
 {
   // Chargement d'un maillage a partir d'un fichier
-  mesh m = load_obj_file("data/stegosaurus.obj");
+  mesh m = load_obj_file("data/Arms.obj");
 
   // Affecte une transformation sur les sommets du maillage
   float s = 0.55f;
