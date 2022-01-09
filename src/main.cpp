@@ -25,7 +25,7 @@ camera cam;
 const int nb_obj = 201;
 objet3d obj[nb_obj];
 
-const int nb_text = 17;
+const int nb_text = 21;
 text text_to_draw[nb_text];
 
 const int nb_menu = 1;
@@ -103,6 +103,7 @@ double timer;
 
 bool ActionMenu = false;
 bool GodMode = false;
+bool Fin = false;
 
 static void init()
 {
@@ -178,6 +179,30 @@ void textes(){
   text_to_draw[16].topRight = vec2(0.15, -0.5);
   text_to_draw[16].visible = false;
 
+  text_to_draw[17]=text_to_draw[0];
+  text_to_draw[17].value = "Felicitation !";
+  text_to_draw[17].bottomLeft = vec2(-0.8, 0.4);
+  text_to_draw[17].topRight = vec2(0.8, 2.0);
+  text_to_draw[17].visible = false;
+
+  text_to_draw[18]=text_to_draw[0];
+  text_to_draw[18].value = "Vous avez recupere";
+  text_to_draw[18].bottomLeft = vec2(-0.8, 0.2);
+  text_to_draw[18].topRight = vec2(0.8, 2.0);
+  text_to_draw[18].visible = false;
+
+  text_to_draw[19]=text_to_draw[0];
+  text_to_draw[19].value = "les 3 clefs pour";
+  text_to_draw[19].bottomLeft = vec2(-0.8, 0.0);
+  text_to_draw[19].topRight = vec2(0.8, 2.0);
+  text_to_draw[19].visible = false;
+
+  text_to_draw[20]=text_to_draw[0];
+  text_to_draw[20].value = "sortir de la piece !";
+  text_to_draw[20].bottomLeft = vec2(-0.8, -0.2);
+  text_to_draw[20].topRight = vec2(0.8, 2.0);
+  text_to_draw[20].visible = false;
+
 }
 
 static void display_callback()
@@ -185,15 +210,37 @@ static void display_callback()
   glClearColor(0.5f, 0.6f, 0.9f, 1.0f); CHECK_GL_ERROR();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); CHECK_GL_ERROR();
   
+  if(AnimationBleu && AnimationRouge && AnimationVert){
+    glutSetCursor(GLUT_CURSOR_NONE);
+    glutWarpPointer(longu/2,longu/2);
+    lumiereR = 1;
+    lumiereV = 1;
+    lumiereB = 1;
+    menu[0].visible = false;
+    obj[0].visible = true;
+    for(int itxt = 0; itxt < nb_text; ++itxt){
+      text_to_draw[itxt].visible = false;
+    }
+    text_to_draw[17].visible = true;
+    text_to_draw[18].visible = true;
+    text_to_draw[19].visible = true;
+    text_to_draw[20].visible = true;
 
-  if(ActionMenu){
-    DisplayMenu();
+    Fin = true;
+    Deplacement();
+
   }
   else{
+    if(ActionMenu){
+      DisplayMenu();
+    }
+    else{
     StopDisplayMenu();
     Deplacement();
     ConditionsLumiere();
+    }
   }
+  
 
 
   //Affichage des differents objets
@@ -245,7 +292,7 @@ void DisplayMenu(){
 }
 
 void StopDisplayMenu(){
-  // glutSetCursor(GLUT_CURSOR_NONE);
+  glutSetCursor(GLUT_CURSOR_NONE);
   glutWarpPointer(longu/2,longu/2);
   lumiereR = lastLumiere.x;
   lumiereV = lastLumiere.y;
@@ -383,7 +430,9 @@ static void keyboard_callback(unsigned char key, int, int)
       torche = 1-torche;
       break;
     case 'e':
-      std::cout << obj[0].tr.translation << std::endl;
+      AnimationVert = true;
+      AnimationBleu = true;
+      AnimationRouge = true;
     break;
   }
 }
@@ -447,7 +496,7 @@ static void special_callback_stop(int key, int,int)
 
 static void mouse_clic(int button, int state, int x, int y){
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
-    if (!ActionMenu){
+    if (!ActionMenu && !Fin){
       if (objselected == 2 || objselected == 3 ){
         if (!CodeBiblio){
           ActionMenu = !ActionMenu;
