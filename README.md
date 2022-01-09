@@ -30,7 +30,7 @@ ou bien en utilisant directement `script.sh`
 - [x] Associer déplacement objet et caméra
 - [x] Interaction avec objet
 - [x] Creation décor
-- [ ] Detection obstacle
+- [x] Detection obstacle
 - [x] Interface objet - Menus
 - [x] Lumière directionnelle (lampe torche)
 - [x] Gestion du texte

@@ -36,9 +36,9 @@ float angle_y_model_1 = 0.0f;
 float angle_view = 0.0f;
 
 int torche = 1;
-int lumiereR = 1;
-int lumiereV = 1;
-int lumiereB = 1;
+int lumiereR = 0;
+int lumiereV = 0;
+int lumiereB = 0;
 
 vec3 lastLumiere = vec3(lumiereR,lumiereV,lumiereB);
 
@@ -264,23 +264,28 @@ void Deplacement(){
   mat4 rotation_y = matrice_rotation(cam.tr.rotation_euler.y, 0.0f, 1.0f, 0.0f);
   mat4 rotation = rotation_x*rotation_y;
 
+  float Xpos = cam.tr.translation.x;
+  float Zpos = cam.tr.translation.z;
+  vec3 UDmove = rotation*vec3(0,0,dL);
+  vec3 LRmove = rotation*vec3(dL,0,0);
+
   if(GodMode){
     if (Move_Up){
-        cam.tr.translation += rotation*vec3(0,0,dL);
+        cam.tr.translation += UDmove;
         if (!SpaceBar){cam.tr.translation.y = 2;}
     }
     if(Move_Down){
-        cam.tr.translation -= rotation*vec3(0,0,dL);
+        cam.tr.translation -= UDmove;
         if (!SpaceBar){cam.tr.translation.y = 2;}
     }
 
     if(Move_Left){
-        cam.tr.translation -= rotation*vec3(dL,0,0);
+        cam.tr.translation -= LRmove;
         if (!SpaceBar){cam.tr.translation.y = 2;}
     }
 
     if(Move_Right){
-        cam.tr.translation += rotation*vec3(dL,0,0);
+        cam.tr.translation += LRmove;
         if (!SpaceBar){cam.tr.translation.y = 2;}
     }
   }
@@ -288,31 +293,48 @@ void Deplacement(){
     //Si une touche de deplacement est activee, on teste si la future position depasse les limites de la map
     //Dans le cas ou le deplacement est valide, on deplace la camera de dL dans la direction d'orientation de la camera
     //On resalise ensuite un test : dans le cas où on ne saute pas on force la camera en y=2
+
     if (Move_Up){
-      if (abs(cam.tr.translation.x + (rotation*vec3(0,0,dL)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z + (rotation*vec3(0,0,dL)).z) < largMaison/2 - 1)){
-        cam.tr.translation += rotation*vec3(0,0,dL);
-        if (!SpaceBar){cam.tr.translation.y = 2;}
+      if (abs(Xpos + UDmove.x) < largMaison/2 - 1 && (abs(Zpos + UDmove.z) < largMaison/2 - 3)){
+        if (!((Xpos + UDmove.x) > 7.3 && (Xpos + UDmove.x) < 12.8 && (Zpos + UDmove.z) > -1.6 && (Zpos + UDmove.z) < 2)) {
+          if (!((Xpos + UDmove.x) < -8 && (Xpos + UDmove.x) > -12.3 && (Zpos + UDmove.z) > -1.5 && (Zpos + UDmove.z) < 1.5)) {
+            cam.tr.translation += UDmove;
+            if (!SpaceBar){cam.tr.translation.y = 2;}
+          }
+        }
       }
 
     }
     if(Move_Down){
-      if (abs(cam.tr.translation.x - (rotation*vec3(0,0,dL)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z - (rotation*vec3(0,0,dL)).z) < largMaison/2 - 1)){
-        cam.tr.translation -= rotation*vec3(0,0,dL);
-        if (!SpaceBar){cam.tr.translation.y = 2;}
+      if (abs(Xpos - UDmove.x) < largMaison/2 - 1 && (abs(Zpos - UDmove.z) < largMaison/2 - 3)){
+        if (!((Xpos - UDmove.x) > 7.3 && (Xpos - UDmove.x) < 12.8 && (Zpos - UDmove.z) > -1.6 && (Zpos - UDmove.z) < 2)) {
+          if (!((Xpos - UDmove.x) < -8 && (Xpos - UDmove.x) > -12.3 && (Zpos - UDmove.z) > -1.5 && (Zpos - UDmove.z) < 1.5)) {
+            cam.tr.translation -= UDmove;
+            if (!SpaceBar){cam.tr.translation.y = 2;}
+          }
+        }
       }
     }
 
     if(Move_Left){
-      if (abs(cam.tr.translation.x - (rotation*vec3(dL,0,0)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z - (rotation*vec3(dL,0,0)).z) < largMaison/2 - 1)){
-        cam.tr.translation -= rotation*vec3(dL,0,0);
-        if (!SpaceBar){cam.tr.translation.y = 2;}
+      if (abs(Xpos - LRmove.x) < largMaison/2 - 1 && (abs(Zpos - LRmove.z) < largMaison/2 - 3)){
+        if (!((Xpos - LRmove.x) > 7.3 && (Xpos - LRmove.x) < 12.8 && (Zpos - LRmove.z) > -1.6 && (Zpos - LRmove.z) < 2)) {
+          if (!((Xpos - LRmove.x) < -8 && (Xpos - LRmove.x) > -12.3 && (Zpos - LRmove.z) > -1.5 && (Zpos - LRmove.z) < 1.5)) {
+            cam.tr.translation -= LRmove;
+            if (!SpaceBar){cam.tr.translation.y = 2;}
+          }
+        }
       }
     }
 
     if(Move_Right){
-      if (abs(cam.tr.translation.x + (rotation*vec3(dL,0,0)).x) < largMaison/2 - 1 && (abs(cam.tr.translation.z + (rotation*vec3(dL,0,0)).z) < largMaison/2 - 1)){
-        cam.tr.translation += rotation*vec3(dL,0,0);
-        if (!SpaceBar){cam.tr.translation.y = 2;}
+      if (abs(Xpos + LRmove.x) < largMaison/2 - 1 && (abs(Zpos + LRmove.z) < largMaison/2 - 3)){
+        if (!((Xpos + LRmove.x) > 7.3 && (Xpos + LRmove.x) < 12.8 && (Zpos + LRmove.z) > -1.6 && (Zpos + LRmove.z) < 2)) {
+          if (!((Xpos + LRmove.x) < -8 && (Xpos + LRmove.x) > -12.3 && (Zpos + LRmove.z) > -1.5 && (Zpos + LRmove.z) < 1.5)) {
+            cam.tr.translation += LRmove;
+            if (!SpaceBar){cam.tr.translation.y = 2;}
+          }
+        }
       }
     }
   }
@@ -361,15 +383,7 @@ static void keyboard_callback(unsigned char key, int, int)
       torche = 1-torche;
       break;
     case 'e':
-      ActionMenu = !ActionMenu;
-      MenuChess = !MenuChess;
-      text_to_draw[16].visible = true;
-      if(lumiereR==0 && lumiereB==0 && lumiereV==1){
-        menu[0].texture_id = glhelper::load_texture("data/menuChessG.tga");
-      }
-      else{
-      menu[0].texture_id = glhelper::load_texture("data/menuChess.tga");
-      }
+      std::cout << obj[0].tr.translation << std::endl;
     break;
   }
 }
@@ -1043,7 +1057,7 @@ GLuint upload_mesh_to_gpu(const mesh& m)
 void init_model_hands()
 {
   // Chargement d'un maillage a partir d'un fichier
-  mesh m = load_obj_file("data/Arms.obj");
+  mesh m = load_obj_file("data/stegosaurus.obj");
 
   // Affecte une transformation sur les sommets du maillage
   float s = 0.55f;
